@@ -1,0 +1,35 @@
+{
+  "name": "basketdb",
+  "version": "1.0.0-beta",
+  "description": "BasketDB - Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.",
+  "main": "dist/index.js",
+  "repository": "https://github.com/ksplatdev/BagDB.git",
+  "author": "Bleart Emini",
+  "license": "MIT",
+  "scripts": {
+    "test": "node test/index.js",
+    "build": "bash scripts/build.sh",
+    "format": "npx prettier --config .prettierrc --write \"src/**/*.ts\"",
+    "format:watch": "npx onchange \"src/**/*.ts\" \"*.json\" \"*.md\" \"examples/**/*.ts\" -- prettier --write --ignore-unknown {{changed}}",
+    "lint": "npx eslint -c .eslintrc.json src/",
+    "lint:watch": "npx onchange \"src/**/*.ts\"  \"examples/**/*.ts\" -- eslint -c .eslintrc.json --fix {{changed}}"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.9",
+    "@types/random-name": "^0.1.0",
+    "@types/uuid": "^8.3.4",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^8.2.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "onchange": "^7.1.0",
+    "prettier": "^2.4.1",
+    "random-name": "^0.1.2",
+    "typescript": "^4.5.2"
+  },
+  "dependencies": {
+    "@ksplat/needlejs": "^1.0.0-beta",
+    "uuid": "^9.0.0"
+  }
+}
