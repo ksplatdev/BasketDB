@@ -8,7 +8,7 @@ import BasketDB from '..';
 export default class Basket<t> {
   public readonly id: string;
 
-  public mainDB: DB<t>;
+  protected mainDB: DB<t>;
 
   public threadManager: ThreadManager;
 
@@ -88,6 +88,10 @@ export default class Basket<t> {
 
     // splinter new task(s)
     await this.splinterTasks();
+  }
+
+  public get data() {
+    return this.mainDB.data;
   }
 
   public async search(
