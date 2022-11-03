@@ -15,3 +15,5 @@
 - [ ] Add toJSON method
 - [ ] Add totalSize getter
 - [ ] Add createView method to search for key pattern
+- [ ] Add backup and restore methods
+- [ ] Add replication of DB to all Bags for safe-case
