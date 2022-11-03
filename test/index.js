@@ -2,7 +2,7 @@ const { join } = require('path');
 
 const { default: BasketDB } = require('../dist');
 
-const myBasket = new BasketDB.Basket(join(__dirname, './db.basket'));
+const myBasket = new BasketDB.Basket(join(__dirname, './db.basket'), 'array');
 
 async function doStuff() {
   console.log('Stuff started');
@@ -10,8 +10,6 @@ async function doStuff() {
   await myBasket.splinter(3); // small amount of bags, increase to scale
 
   await myBasket.fixEmpty();
-
-  await myBasket.read();
 
   const start = Date.now();
 
@@ -23,18 +21,21 @@ async function doStuff() {
     (res) => {}
   );
 
+  await myBasket.add(
+    'bye',
+    {
+      message: 'Bye World!',
+    },
+    (res) => {}
+  );
+
   await myBasket.search('hi', (res) => {
     console.log('found by key "hi"', res);
   });
 
-  await myBasket.mainDB.write();
-
   const end = Date.now();
 
-  console.log(
-    `Operation time took: ${(end - start) / 1000}s`,
-    myBasket.mainDB.data
-  );
+  console.log(`Operation time took: ${(end - start) / 1000}s`, myBasket.data);
 }
 
 doStuff();

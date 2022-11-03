@@ -19,7 +19,14 @@ namespace BasketDB {
     }
 
     export namespace Core {
-      export type DBSchema<t> = Record<string, t>;
+      export type DBType = 'array' | 'object';
+
+      export interface DBReturnType<t> {
+        key: string;
+        value: t;
+      }
+
+      export type DBSchema<t> = Record<string, t> | DBReturnType<t>[];
     }
   }
 }

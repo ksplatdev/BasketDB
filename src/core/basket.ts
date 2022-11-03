@@ -15,9 +15,9 @@ export default class Basket<t> {
   public bags: Bag<t>[];
   public taskTree: Record<string, BasketDB.Types.Basket.Task>;
 
-  constructor(mainDB: string) {
+  constructor(mainDB: string, type: BasketDB.Types.Core.DBType) {
     this.id = uuid();
-    this.mainDB = new DB(mainDB);
+    this.mainDB = new DB(mainDB, type);
 
     this.threadManager = new ThreadManager();
 
@@ -101,6 +101,19 @@ export default class Basket<t> {
     await this.queueTask(
       async () => {
         return await this.mainDB.search(key);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async searchIndex(
+    key: string,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.searchIndex(key);
       },
       [],
       onComplete

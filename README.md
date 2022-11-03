@@ -10,9 +10,8 @@ Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.
   - Tasks are smartly assigned to Bags (Nodes) to handle a task (ie: search, add, remove, etc...)
 - Fast Serialization & Deserialization
   - Uses Chrome V8 Serialization & Deserialization to store information
-- Efficient Read & Write
-  - Read and Write calls must be called manually to prevent useless calls
-  - Data is stored in memory until a read call overwrites memory or a write call writes to database
+- Auto Read & Write
+  - Read and Write calls must be called automatically
 - Flexible & Schemas
   - With the use of typescript, the database(s) will always have a structure
 - Performant

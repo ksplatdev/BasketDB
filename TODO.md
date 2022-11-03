@@ -1,5 +1,7 @@
 # Todo
 
+- [x] Add support for Array or Object type for database
+- [x] Add searchIndex method
 - [ ] Add modify method
 - [ ] Add modifyMany method
 - [ ] Add addMany method
