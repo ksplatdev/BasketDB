@@ -3,7 +3,7 @@ import BasketDB from '../..';
 
 import Basket from '../basket';
 
-export default class Bag<t> {
+export default class Bag<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly id: string;
 
   public basket: Basket<t>;
@@ -24,7 +24,7 @@ export default class Bag<t> {
       const index = this.tasks.findIndex((t) => t.id === task.id);
 
       const res = await task.func(task.args);
-      task.onComplete(res);
+      await task.onComplete(res);
 
       this.tasks.splice(index);
 

@@ -5,10 +5,14 @@ namespace BasketDB {
 
   export namespace Types {
     export namespace Basket {
+      export interface Config {
+        trashmanCollectionIntervalInSeconds?: number;
+      }
+
       export type TaskFunc = <t extends unknown[]>(
         args: t
       ) => Promise<unknown | null>;
-      export type TaskCompleteFunc = <t>(result: t) => unknown;
+      export type TaskCompleteFunc = (result: unknown) => Promise<unknown>;
 
       export interface Task {
         id: string;
@@ -19,14 +23,36 @@ namespace BasketDB {
     }
 
     export namespace Core {
-      export type DBType = 'array' | 'object';
+      export namespace DB {
+        export type Type = 'array' | 'object';
 
-      export interface DBReturnType<t> {
-        key: string;
-        value: t;
+        export interface ReturnType<t> extends HiddenProps {
+          key: string;
+          value: t;
+        }
+
+        export interface HiddenProps {
+          ___markedForRemoval?: boolean;
+        }
+
+        export type Schema<t> = Record<string, t> | ReturnType<t>[];
+
+        export interface Combo<t> {
+          key: string;
+          value: t;
+        }
       }
 
-      export type DBSchema<t> = Record<string, t> | DBReturnType<t>[];
+      export namespace Trashman {
+        export type Schedule = Record<
+          string,
+          {
+            key: string;
+            date: Date;
+            onComplete: BasketDB.Types.Basket.TaskCompleteFunc;
+          }
+        >;
+      }
     }
   }
 }

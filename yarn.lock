@@ -46,11 +46,6 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@ksplat/needlejs@^1.0.0-beta":
-  version "1.0.0-beta"
-  resolved "https://registry.yarnpkg.com/@ksplat/needlejs/-/needlejs-1.0.0-beta.tgz#4eec1f76142da920f5fef30f199c9470fa64ab40"
-  integrity sha512-9AzwixUNNn1EJ7QOCt8U47XvxS3P6t/6fPi3wJPbiiw0XZWcxLKOWvRahFEKiHwb1jsoP6XRD6ELDhOGV55gsw==
-
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"

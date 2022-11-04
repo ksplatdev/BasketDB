@@ -29,7 +29,6 @@
     "typescript": "^4.5.2"
   },
   "dependencies": {
-    "@ksplat/needlejs": "^1.0.0-beta",
     "uuid": "^9.0.0"
   }
 }

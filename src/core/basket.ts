@@ -1,25 +1,30 @@
 import { v4 as uuid } from 'uuid';
 
-import ThreadManager from '@ksplat/needlejs/dist/core/threadManager';
 import Bag from './models/bag';
 import DB from './models/misc/db';
 import BasketDB from '..';
+import Trashman from './models/func/trashMan';
 
-export default class Basket<t> {
+export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly id: string;
+  public readonly config: BasketDB.Types.Basket.Config;
 
   protected mainDB: DB<t>;
-
-  public threadManager: ThreadManager;
+  public trashman: Trashman<t>;
 
   public bags: Bag<t>[];
   public taskTree: Record<string, BasketDB.Types.Basket.Task>;
 
-  constructor(mainDB: string, type: BasketDB.Types.Core.DBType) {
+  constructor(
+    mainDB: string,
+    type: BasketDB.Types.Core.DB.Type,
+    config?: BasketDB.Types.Basket.Config
+  ) {
     this.id = uuid();
-    this.mainDB = new DB(mainDB, type);
+    this.config = config || {};
 
-    this.threadManager = new ThreadManager();
+    this.mainDB = new DB(mainDB, type);
+    this.trashman = new Trashman(this, this.mainDB);
 
     this.bags = [];
     this.taskTree = {};
@@ -72,7 +77,7 @@ export default class Basket<t> {
     }
   }
 
-  protected async queueTask(
+  public async queueTask(
     func: BasketDB.Types.Basket.TaskFunc,
     args: unknown[],
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
@@ -92,6 +97,62 @@ export default class Basket<t> {
 
   public get data() {
     return this.mainDB.data;
+  }
+
+  public async read() {
+    return await this.mainDB.read();
+  }
+
+  public async write() {
+    return await this.mainDB.write();
+  }
+
+  public async keyExistsMemory(
+    key: string,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.keyExistsMemory(key);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async fixEmpty() {
+    try {
+      await this.read();
+    } catch (error) {
+      await this.write();
+    }
+  }
+
+  public async add(
+    key: string,
+    value: t,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.add(key, value);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async addMany(
+    items: BasketDB.Types.Core.DB.Combo<t>[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.addMany(items);
+      },
+      [],
+      onComplete
+    );
   }
 
   public async search(
@@ -120,43 +181,41 @@ export default class Basket<t> {
     );
   }
 
-  public async keyExists(
-    key: string,
+  public async rename(
+    oldKey: string,
+    newKey: string,
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
       async () => {
-        return await this.mainDB.keyExists(key);
+        return await this.mainDB.rename(oldKey, newKey);
       },
       [],
       onComplete
     );
   }
 
-  public async fixEmpty() {
-    try {
-      await this.read();
-    } catch (error) {
-      await this.write();
-    }
-  }
-
-  public async read() {
-    return await this.mainDB.read();
-  }
-
-  public async write() {
-    return await this.mainDB.write();
-  }
-
-  public async add(
+  public async modify(
     key: string,
     value: t,
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
       async () => {
-        return await this.mainDB.add(key, value);
+        return await this.mainDB.modify(key, value);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async modifyMany(
+    items: BasketDB.Types.Core.DB.Combo<t>[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.modifyMany(items);
       },
       [],
       onComplete
@@ -167,12 +226,45 @@ export default class Basket<t> {
     key: string,
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
+    await this.trashman.mark(key, onComplete);
+  }
+
+  public async removeInstantly(
+    key: string,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
     await this.queueTask(
       async () => {
-        return await this.mainDB.remove(key);
+        return await this.mainDB.removeInstantly(key);
       },
       [],
       onComplete
     );
+  }
+
+  public async removeMany(
+    keys: string[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    for await (const key of keys) {
+      await this.trashman.mark(key, onComplete);
+    }
+  }
+
+  public async removeManyInstantly(
+    keys: string[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.removeManyInstantly(keys);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async close() {
+    await this.trashman.close();
   }
 }

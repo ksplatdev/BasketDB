@@ -3,13 +3,13 @@ import { serialize, deserialize } from 'v8';
 
 import BasketDB from '../../..';
 
-export default class DB<t> {
+export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly filepath: string;
-  public readonly type: BasketDB.Types.Core.DBType;
+  public readonly type: BasketDB.Types.Core.DB.Type;
 
-  public data: BasketDB.Types.Core.DBSchema<t>;
+  public data: BasketDB.Types.Core.DB.Schema<t>;
 
-  constructor(filepath: string, type: BasketDB.Types.Core.DBType) {
+  constructor(filepath: string, type: BasketDB.Types.Core.DB.Type) {
     this.filepath = filepath;
     this.type = type;
 
@@ -30,35 +30,93 @@ export default class DB<t> {
     this.data = deserialize(buffer);
   }
 
-  public async keyExists(key: string) {
-    if (this.type === 'array') {
-      return (this.data as BasketDB.Types.Core.DBReturnType<t>[]).find(
-        (t) => t.key === key
-      )
-        ? true
-        : null;
+  public async keyExistsMemory(key: string) {
+    if (Array.isArray(this.data)) {
+      return this.data.find((t) => t.key === key) ? true : null;
     } else {
-      return key in this.data || null;
+      const exists = key in this.data;
+      return exists || null;
     }
+  }
+
+  public async keyMarkedForRemoval(key: string) {
+    if (Array.isArray(this.data)) {
+      const markedForRemoval = this.data.find(
+        (t) => t.key === key
+      )?.___markedForRemoval;
+
+      return markedForRemoval || null;
+    } else {
+      const markedForRemoval = this.data[key]?.___markedForRemoval;
+
+      return markedForRemoval || null;
+    }
+  }
+
+  public async add(
+    key: string,
+    value: t
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
+    // read
+    await this.read();
+
+    const keyExistsMemory = await this.keyExistsMemory(key);
+
+    if (!keyExistsMemory) {
+      if (Array.isArray(this.data)) {
+        this.data.push({
+          key,
+          value,
+        });
+
+        // write
+        await this.write();
+
+        return {
+          key,
+          value,
+        };
+      } else {
+        this.data[key] = value;
+
+        // write
+        await this.write();
+
+        return { key, value };
+      }
+    } else {
+      return null;
+    }
+  }
+
+  public async addMany(
+    items: BasketDB.Types.Core.DB.Combo<t>[]
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
+    const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
+
+    for await (const item of items) {
+      const res = await this.add(item.key, item.value);
+      results.push(res as BasketDB.Types.Core.DB.ReturnType<t>);
+    }
+
+    return results;
   }
 
   public async search(
     key: string
-  ): Promise<BasketDB.Types.Core.DBReturnType<t> | null> {
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
     // read
     await this.read();
 
-    const keyExists = await this.keyExists(key);
+    const keyExistsMemory = await this.keyExistsMemory(key);
+    const keyMarkedForRemoval = await this.keyMarkedForRemoval(key);
 
-    if (keyExists) {
-      if (this.type === 'array') {
-        const v =
-          (this.data as BasketDB.Types.Core.DBReturnType<t>[]).find(
-            (t) => t.key === key
-          ) || null;
+    if (keyExistsMemory && !keyMarkedForRemoval) {
+      if (Array.isArray(this.data)) {
+        const v = this.data.find((t) => t.key === key) || null;
         return v;
       } else {
-        const v = (this.data as Record<string, t>)[key];
+        const v = this.data[key];
         return {
           key: key,
           value: v,
@@ -73,12 +131,13 @@ export default class DB<t> {
     // read
     await this.read();
 
-    const keyExists = await this.keyExists(key);
+    const keyExistsMemory = await this.keyExistsMemory(key);
+    const keyMarkedForRemoval = await this.keyMarkedForRemoval(key);
 
-    if (keyExists) {
-      if (this.type === 'array') {
+    if (keyExistsMemory && !keyMarkedForRemoval) {
+      if (Array.isArray(this.data)) {
         const v = (
-          this.data as BasketDB.Types.Core.DBReturnType<t>[]
+          this.data as BasketDB.Types.Core.DB.ReturnType<t>[]
         ).findIndex((t) => t.key === key);
         return v;
       } else {
@@ -89,31 +148,72 @@ export default class DB<t> {
     }
   }
 
-  public async add(
-    key: string,
-    value: t
-  ): Promise<BasketDB.Types.Core.DBReturnType<t> | null> {
+  public async rename(
+    oldKey: string,
+    newKey: string
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
     // read
     await this.read();
 
-    const keyExists = await this.keyExists(key);
+    const oldKeyExistsMemory = await this.keyExistsMemory(oldKey);
+    const newKeyExistsMemory = await this.keyExistsMemory(newKey);
+    const oldKeyMarkedForRemoval = await this.keyMarkedForRemoval(oldKey);
 
-    if (!keyExists) {
-      if (this.type === 'array') {
-        (this.data as BasketDB.Types.Core.DBReturnType<t>[]).push({
-          key,
-          value,
-        });
+    if (oldKeyExistsMemory && !newKeyExistsMemory && !oldKeyMarkedForRemoval) {
+      if (Array.isArray(this.data)) {
+        const index = await this.searchIndex(oldKey);
+
+        if (index) {
+          this.data[index].key = newKey;
+
+          // write
+          await this.write();
+
+          return { key: newKey, value: this.data[index].value };
+        } else {
+          return null;
+        }
+      } else {
+        const renamed = delete Object.assign(this.data, {
+          [newKey]: this.data[oldKey],
+        })[oldKey];
 
         // write
         await this.write();
 
-        return {
-          key,
-          value,
-        };
+        return renamed ? { key: newKey, value: this.data[newKey] } : null;
+      }
+    } else {
+      return null;
+    }
+  }
+
+  public async modify(
+    key: string,
+    value: t
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
+    // read
+    await this.read();
+
+    const keyExistsMemory = await this.keyExistsMemory(key);
+    const keyMarkedForRemoval = await this.keyMarkedForRemoval(key);
+
+    if (keyExistsMemory && !keyMarkedForRemoval) {
+      if (Array.isArray(this.data)) {
+        const index = await this.searchIndex(key);
+
+        if (index) {
+          this.data[index] = { key, value };
+
+          // write
+          await this.write();
+
+          return { key, value };
+        } else {
+          return null;
+        }
       } else {
-        (this.data as Record<string, t>)[key] = value;
+        this.data[key] = value;
 
         // write
         await this.write();
@@ -125,21 +225,38 @@ export default class DB<t> {
     }
   }
 
-  public async remove(
+  public async modifyMany(
+    items: BasketDB.Types.Core.DB.Combo<t>[]
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
+    const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
+
+    for await (const item of items) {
+      const res = await this.modify(item.key, item.value);
+      results.push(res as BasketDB.Types.Core.DB.ReturnType<t>);
+    }
+
+    if (results.find((v) => v === null)) {
+      return null;
+    } else {
+      return results;
+    }
+  }
+
+  public async removeInstantly(
     key: string
-  ): Promise<BasketDB.Types.Core.DBReturnType<t> | null> {
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
     // read
     await this.read();
 
-    const keyExists = await this.keyExists(key);
+    const keyExistsMemory = await this.keyExistsMemory(key);
 
-    if (keyExists) {
-      if (this.type === 'array') {
+    if (keyExistsMemory) {
+      if (Array.isArray(this.data)) {
         const index = (await this.searchIndex(key)) as number;
 
-        const old = (this.data as BasketDB.Types.Core.DBReturnType<t>[])[index];
+        const old = this.data[index];
 
-        (this.data as BasketDB.Types.Core.DBReturnType<t>[]).splice(index);
+        this.data.splice(index);
 
         // write
         await this.write();
@@ -149,9 +266,9 @@ export default class DB<t> {
           value: old.value,
         };
       } else {
-        const oldValue = (this.data as Record<string, t>)[key];
+        const oldValue = this.data[key];
 
-        delete (this.data as Record<string, t>)[key];
+        delete this.data[key];
 
         // write
         await this.write();
@@ -163,6 +280,23 @@ export default class DB<t> {
       }
     } else {
       return null;
+    }
+  }
+
+  public async removeManyInstantly(
+    keys: string[]
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
+    const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
+
+    for await (const key of keys) {
+      const res = await this.removeInstantly(key);
+      results.push(res as BasketDB.Types.Core.DB.ReturnType<t>);
+    }
+
+    if (results.find((v) => v === null)) {
+      return null;
+    } else {
+      return results;
     }
   }
 }
