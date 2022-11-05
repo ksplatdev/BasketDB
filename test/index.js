@@ -11,7 +11,7 @@ async function doStuff() {
 
   await myBasket.splinter(3); // small amount of bags, increase to scale
 
-  await myBasket.fixEmpty();
+  await myBasket.fillEmpty();
 
   const start = Date.now();
 
@@ -46,7 +46,7 @@ async function doStuff() {
     console.log('found by key "hello"', res);
   });
 
-  await myBasket.remove('hello', (res) => {
+  await myBasket.remove('hello', async (res) => {
     console.log('removed hello after 10 seconds', res);
   });
 

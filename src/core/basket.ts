@@ -23,7 +23,7 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     this.id = uuid();
     this.config = config || {};
 
-    this.mainDB = new DB(mainDB, type);
+    this.mainDB = new DB(mainDB, type, this);
     this.trashman = new Trashman(this, this.mainDB);
 
     this.bags = [];
@@ -120,7 +120,7 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     );
   }
 
-  public async fixEmpty() {
+  public async fillEmpty() {
     try {
       await this.read();
     } catch (error) {
@@ -162,6 +162,98 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     await this.queueTask(
       async () => {
         return await this.mainDB.search(key);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async searchMany(
+    keys: string[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.searchMany(keys);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async searchAndModify(
+    key: string,
+    value: t,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.searchAndModify(key, value);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async searchAndModifyMany(
+    items: BasketDB.Types.Core.DB.Combo<t>[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.searchAndModifyMany(items);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async searchAndRemove(
+    key: string,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.searchAndRemove(key, onComplete);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async searchAndRemoveMany(
+    keys: string[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.searchAndRemoveMany(keys, onComplete);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async searchAndRemoveInstantly(
+    key: string,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.searchAndRemoveInstantly(key);
+      },
+      [],
+      onComplete
+    );
+  }
+
+  public async searchAndRemoveInstantlyMany(
+    keys: string[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    await this.queueTask(
+      async () => {
+        return await this.mainDB.searchAndRemoveInstantlyMany(keys);
       },
       [],
       onComplete
@@ -226,7 +318,14 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     key: string,
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
-    await this.trashman.mark(key, onComplete);
+    await this.mainDB.remove(key, onComplete);
+  }
+
+  public async removeMany(
+    keys: string[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ) {
+    this.mainDB.removeMany(keys, onComplete);
   }
 
   public async removeInstantly(
@@ -242,22 +341,13 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     );
   }
 
-  public async removeMany(
-    keys: string[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
-  ) {
-    for await (const key of keys) {
-      await this.trashman.mark(key, onComplete);
-    }
-  }
-
-  public async removeManyInstantly(
+  public async removeInstantlyMany(
     keys: string[],
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
       async () => {
-        return await this.mainDB.removeManyInstantly(keys);
+        return await this.mainDB.removeInstantlyMany(keys);
       },
       [],
       onComplete

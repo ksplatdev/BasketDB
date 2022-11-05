@@ -2,16 +2,25 @@ import { readFile, writeFile } from 'fs/promises';
 import { serialize, deserialize } from 'v8';
 
 import BasketDB from '../../..';
+import Basket from '../../basket';
 
 export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly filepath: string;
   public readonly type: BasketDB.Types.Core.DB.Type;
 
+  protected basket: Basket<t>;
+
   public data: BasketDB.Types.Core.DB.Schema<t>;
 
-  constructor(filepath: string, type: BasketDB.Types.Core.DB.Type) {
+  constructor(
+    filepath: string,
+    type: BasketDB.Types.Core.DB.Type,
+    basket: Basket<t>
+  ) {
     this.filepath = filepath;
     this.type = type;
+
+    this.basket = basket;
 
     if (type === 'array') {
       this.data = [];
@@ -125,6 +134,103 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
     } else {
       return null;
     }
+  }
+
+  public async searchMany(
+    keys: string[]
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
+    const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
+
+    for await (const key of keys) {
+      const res = await this.search(key);
+      results.push(res as BasketDB.Types.Core.DB.ReturnType<t>);
+    }
+
+    return results;
+  }
+
+  public async searchAndModify(
+    key: string,
+    value: t
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
+    const item = await this.search(key);
+
+    if (item) {
+      const res = await this.modify(key, value);
+
+      return res;
+    } else {
+      return null;
+    }
+  }
+
+  public async searchAndModifyMany(
+    items: BasketDB.Types.Core.DB.Combo<t>[]
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
+    const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
+
+    for await (const item of items) {
+      const res = await this.searchAndModify(item.key, item.value);
+      results.push(res as BasketDB.Types.Core.DB.ReturnType<t>);
+    }
+
+    return results;
+  }
+
+  public async searchAndRemove(
+    key: string,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
+    const item = await this.search(key);
+
+    if (item) {
+      await this.remove(key, onComplete);
+
+      return item;
+    } else {
+      return null;
+    }
+  }
+
+  public async searchAndRemoveMany(
+    keys: string[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
+    const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
+
+    for await (const key of keys) {
+      const res = await this.searchAndRemove(key, onComplete);
+      results.push(res as BasketDB.Types.Core.DB.ReturnType<t>);
+    }
+
+    return results;
+  }
+
+  public async searchAndRemoveInstantly(
+    key: string
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
+    const item = await this.search(key);
+
+    if (item) {
+      await this.removeInstantly(key);
+
+      return item;
+    } else {
+      return null;
+    }
+  }
+
+  public async searchAndRemoveInstantlyMany(
+    keys: string[]
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
+    const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
+
+    for await (const key of keys) {
+      const res = await this.searchAndRemoveInstantly(key);
+      results.push(res as BasketDB.Types.Core.DB.ReturnType<t>);
+    }
+
+    return results;
   }
 
   public async searchIndex(key: string): Promise<number | null> {
@@ -242,6 +348,41 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
     }
   }
 
+  public async remove(
+    key: string,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
+    const item = await this.search(key);
+
+    if (item) {
+      await this.basket.trashman.mark(key, onComplete);
+
+      item.___markedForRemoval = true;
+
+      return item;
+    } else {
+      return null;
+    }
+  }
+
+  public async removeMany(
+    keys: string[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+  ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
+    const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
+
+    for await (const key of keys) {
+      const res = await this.remove(key, onComplete);
+      results.push(res as BasketDB.Types.Core.DB.ReturnType<t>);
+    }
+
+    if (results.find((v) => v === null)) {
+      return null;
+    } else {
+      return results;
+    }
+  }
+
   public async removeInstantly(
     key: string
   ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
@@ -283,7 +424,7 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
     }
   }
 
-  public async removeManyInstantly(
+  public async removeInstantlyMany(
     keys: string[]
   ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
     const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
@@ -297,6 +438,14 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
       return null;
     } else {
       return results;
+    }
+  }
+
+  public get totalSize(): number {
+    if (Array.isArray(this.data)) {
+      return this.data.length;
+    } else {
+      return Object.keys(this.data).length;
     }
   }
 }
