@@ -13,6 +13,7 @@
 - [x] Add removeInstantlyMany method
 - [x] Add config to Basket
   - [x] Add Trashman time config
+  - [x] Add dumpPath config
   - [ ] Add debug config
 - [x] Add remove
 - [x] Add removeMany
@@ -25,8 +26,9 @@
 - [x] Add searchAndRemoveInstantlyMany method
 - [x] Add totalSize getter
 - [ ] Add createView method to search for key pattern
-- [ ] Add backup and restore methods
-- [ ] Add replication of DB to all Bags for safe-case
+- [x] Add backup and restore methods
+- [x] Add replication of DB to all Bags for safe-case
+  - [x] Add on error dump one bag to backup
 - [ ] Add Logger for debugging
 - [ ] Add stats system
 

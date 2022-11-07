@@ -7,6 +7,7 @@ namespace BasketDB {
     export namespace Basket {
       export interface Config {
         trashmanCollectionIntervalInSeconds?: number;
+        dumpPath?: string;
       }
 
       export type TaskFunc = <t extends unknown[]>(

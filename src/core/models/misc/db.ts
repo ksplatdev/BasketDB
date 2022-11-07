@@ -30,13 +30,23 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
   }
 
   public async write() {
-    const string = serialize(this.data);
-    await writeFile(this.filepath, string);
+    try {
+      const string = serialize(this.data);
+      await writeFile(this.filepath, string);
+    } catch (error) {
+      await this.basket.dump();
+      throw error;
+    }
   }
 
   public async read() {
-    const buffer = await readFile(this.filepath);
-    this.data = deserialize(buffer);
+    try {
+      const buffer = await readFile(this.filepath);
+      this.data = deserialize(buffer);
+    } catch (error) {
+      await this.basket.dump();
+      throw error;
+    }
   }
 
   public async keyExistsMemory(key: string) {

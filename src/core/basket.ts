@@ -4,9 +4,13 @@ import Bag from './models/bag';
 import DB from './models/misc/db';
 import BasketDB from '..';
 import Trashman from './models/func/trashMan';
+import { deserialize, serialize } from 'v8';
+import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
 
 export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly id: string;
+  public readonly name: string;
   public readonly config: BasketDB.Types.Basket.Config;
 
   protected mainDB: DB<t>;
@@ -16,11 +20,13 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public taskTree: Record<string, BasketDB.Types.Basket.Task>;
 
   constructor(
+    name: string,
     mainDB: string,
     type: BasketDB.Types.Core.DB.Type,
     config?: BasketDB.Types.Basket.Config
   ) {
     this.id = uuid();
+    this.name = name;
     this.config = config || {};
 
     this.mainDB = new DB(mainDB, type, this);
@@ -33,14 +39,14 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public async splinter(amount?: number) {
     if (amount) {
       for (let i = 0; i < amount; i++) {
-        const bag = new Bag(this);
+        const bag = new Bag(this, this.mainDB);
         this.bags.push(bag);
 
         // splinter tasks in case some waiting
         await this.splinterTasks();
       }
     } else {
-      const bag = new Bag(this);
+      const bag = new Bag(this, this.mainDB);
       this.bags.push(bag);
 
       // splinter tasks in case some waiting
@@ -105,6 +111,32 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
   public async write() {
     return await this.mainDB.write();
+  }
+
+  public async backup(filepath: string) {
+    await this.read();
+    const string = serialize(this.mainDB.data);
+    return await writeFile(filepath, string);
+  }
+
+  public async restore(filepath: string) {
+    const buffer = await readFile(filepath);
+    this.mainDB.data = deserialize(buffer);
+    await this.write();
+  }
+
+  public async dump() {
+    const bag = this.bags[0];
+    const string = serialize(bag.repel.data);
+
+    const filepath = join(
+      this.config?.dumpPath || __dirname,
+      `./basket-${this.name}-bag-${bag.id}-dump.basket`
+    );
+
+    await writeFile(filepath, string);
+
+    throw console.error('*DUMP*', filepath);
   }
 
   public async keyExistsMemory(

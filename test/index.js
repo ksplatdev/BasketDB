@@ -2,9 +2,15 @@ const { join } = require('path');
 
 const { default: BasketDB } = require('../dist');
 
-const myBasket = new BasketDB.Basket(join(__dirname, './db.basket'), 'object', {
-  trashmanCollectionIntervalInSeconds: 10,
-});
+const myBasket = new BasketDB.Basket(
+  'myBasket',
+  join(__dirname, './db.basket'),
+  'object',
+  {
+    trashmanCollectionIntervalInSeconds: 10,
+    dumpPath: join(__dirname, './'),
+  }
+);
 
 async function doStuff() {
   console.log('Stuff started');
@@ -41,6 +47,10 @@ async function doStuff() {
       console.log('addMany res', res);
     }
   );
+
+  // force error and dump
+  // myBasket.mainDB.data = '[][asd';
+  // await myBasket.write();
 
   await myBasket.search('hello', async (res) => {
     console.log('found by key "hello"', res);

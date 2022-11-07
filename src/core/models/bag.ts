@@ -2,6 +2,7 @@ import { v4 as uuid } from 'uuid';
 import BasketDB from '../..';
 
 import Basket from '../basket';
+import DB from './misc/db';
 
 export default class Bag<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly id: string;
@@ -10,12 +11,16 @@ export default class Bag<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
   public tasks: BasketDB.Types.Basket.Task[];
 
-  constructor(basket: Basket<t>) {
+  public repel: DB<t>;
+
+  constructor(basket: Basket<t>, db: DB<t>) {
     this.id = uuid();
 
     this.basket = basket;
 
     this.tasks = [];
+
+    this.repel = db;
   }
 
   public async doTasks() {
