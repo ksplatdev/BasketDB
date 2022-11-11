@@ -8,6 +8,7 @@ namespace BasketDB {
       export interface Config {
         trashmanCollectionIntervalInSeconds?: number;
         dumpPath?: string;
+        debug?: BasketDB.Types.Misc.DebugConfig;
       }
 
       export type TaskFunc = <t extends unknown[]>(
@@ -17,9 +18,11 @@ namespace BasketDB {
 
       export interface Task {
         id: string;
+        name: string;
         func: TaskFunc;
         onComplete: TaskCompleteFunc;
         args: unknown[];
+        isTrashmanTask: boolean;
       }
     }
 
@@ -53,6 +56,19 @@ namespace BasketDB {
             onComplete: BasketDB.Types.Basket.TaskCompleteFunc;
           }
         >;
+      }
+    }
+
+    export namespace Misc {
+      export interface LogTraceItem {
+        type: 'debug' | 'warn' | 'error';
+        message: string;
+      }
+
+      export interface DebugConfig {
+        log: boolean;
+        warn?: boolean;
+        error?: boolean;
       }
     }
   }

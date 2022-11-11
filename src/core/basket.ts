@@ -7,6 +7,7 @@ import Trashman from './models/func/trashMan';
 import { deserialize, serialize } from 'v8';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import Logger from './models/func/logger';
 
 export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly id: string;
@@ -18,6 +19,8 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
   public bags: Bag<t>[];
   public taskTree: Record<string, BasketDB.Types.Basket.Task>;
+
+  public logger: Logger<t>;
 
   constructor(
     name: string,
@@ -34,20 +37,33 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
     this.bags = [];
     this.taskTree = {};
+
+    if (config?.debug) {
+      config.debug.warn = config.debug.warn || false;
+      config.debug.error = config.debug.error || true;
+    }
+
+    this.logger = new Logger(this, config?.debug);
   }
 
   public async splinter(amount?: number) {
     if (amount) {
       for (let i = 0; i < amount; i++) {
         const bag = new Bag(this, this.mainDB);
-        this.bags.push(bag);
+        const num = this.bags.push(bag);
+
+        // debug
+        this.logger.debug(`Splintered/Created Bag #${num}`);
 
         // splinter tasks in case some waiting
         await this.splinterTasks();
       }
     } else {
       const bag = new Bag(this, this.mainDB);
-      this.bags.push(bag);
+      const num = this.bags.push(bag);
+
+      // debug
+      this.logger.debug(`Splintered/Created Bag #${num}`);
 
       // splinter tasks in case some waiting
       await this.splinterTasks();
@@ -76,6 +92,14 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
         delete this.taskTree[key];
 
+        // debug
+        // check if task is a Trashman check task so that console will not be flooded
+        if (!task.isTrashmanTask) {
+          this.logger.debug(
+            `Splintered/Added task "${task.id}" into Bag "${smallestBag.id}"`
+          );
+        }
+
         await smallestBag.doTasks();
 
         continue;
@@ -84,48 +108,72 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   }
 
   public async queueTask(
+    name: string,
     func: BasketDB.Types.Basket.TaskFunc,
     args: unknown[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc,
+    isTrashmanTask?: boolean
   ) {
-    const id = uuid();
+    try {
+      const id = uuid();
 
-    this.taskTree[id] = {
-      id,
-      func,
-      args,
-      onComplete,
-    };
+      this.taskTree[id] = {
+        id,
+        name,
+        func,
+        args,
+        onComplete,
+        isTrashmanTask: isTrashmanTask || false,
+      };
 
-    // splinter new task(s)
-    await this.splinterTasks();
+      // splinter new task(s)
+      await this.splinterTasks();
+    } catch (error) {
+      await this.dump(
+        `FAILED TO QUEUE TASK OF "${name}", POSSIBLE CAUSE: INVALID DATA`
+      );
+      throw error;
+    }
   }
 
   public get data() {
     return this.mainDB.data;
   }
 
-  public async read() {
-    return await this.mainDB.read();
+  public async read(ignoreDump?: boolean) {
+    await this.mainDB.read(ignoreDump);
+
+    // debug
+    this.logger.debug(`Basket Read DB Call`);
   }
 
   public async write() {
-    return await this.mainDB.write();
+    await this.mainDB.write();
+
+    // debug
+    this.logger.debug(`Basket Write DB Call`);
   }
 
   public async backup(filepath: string) {
     await this.read();
     const string = serialize(this.mainDB.data);
-    return await writeFile(filepath, string);
+    await writeFile(filepath, string);
+
+    // debug
+    this.logger.debug(`Backed up into filepath "${filepath}"`);
   }
 
   public async restore(filepath: string) {
     const buffer = await readFile(filepath);
     this.mainDB.data = deserialize(buffer);
     await this.write();
+
+    // debug
+    this.logger.debug(`Restored from filepath "${filepath}"`);
   }
 
-  public async dump() {
+  public async dump(msg: string) {
+    // dump repel DB
     const bag = this.bags[0];
     const string = serialize(bag.repel.data);
 
@@ -136,7 +184,15 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
     await writeFile(filepath, string);
 
-    throw console.error('*DUMP*', filepath);
+    // dump Logger trace
+    const logFilepath = join(
+      this.config?.dumpPath || __dirname,
+      `./basket-${this.name}-log-trace.json`
+    );
+
+    this.logger.error('*DUMP* *CHECK LOG TRACE*', ' | ', msg, ' | ', filepath);
+
+    await this.logger.dump(logFilepath);
   }
 
   public async keyExistsMemory(
@@ -144,17 +200,21 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'keyExistsMemory',
       async () => {
         return await this.mainDB.keyExistsMemory(key);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "keyExistsMemory": KEY: "${key}".`);
   }
 
   public async fillEmpty() {
     try {
-      await this.read();
+      await this.read(true); // do not dump
     } catch (error) {
       await this.write();
     }
@@ -166,12 +226,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'add',
       async () => {
         return await this.mainDB.add(key, value);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "add": KEY: "${key}", VALUE: "${value}".`);
   }
 
   public async addMany(
@@ -179,12 +243,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'addMany',
       async () => {
         return await this.mainDB.addMany(items);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "addMany": ITEMS: `, items);
   }
 
   public async search(
@@ -192,12 +260,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'search',
       async () => {
         return await this.mainDB.search(key);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "search": KEY: "${key}".`);
   }
 
   public async searchMany(
@@ -205,12 +277,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'searchMany',
       async () => {
         return await this.mainDB.searchMany(keys);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "searchMany": KEYS:`, keys);
   }
 
   public async searchAndModify(
@@ -219,11 +295,17 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'searchAndModify',
       async () => {
         return await this.mainDB.searchAndModify(key, value);
       },
       [],
       onComplete
+    );
+
+    // debug
+    this.logger.debug(
+      `Queued task "searchAndModify": KEY: "${key}", VALUE: "${value}".`
     );
   }
 
@@ -232,12 +314,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'searchAndModifyMany',
       async () => {
         return await this.mainDB.searchAndModifyMany(items);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "searchAndModifyMany": ITEMS: `, items);
   }
 
   public async searchAndRemove(
@@ -245,12 +331,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'searchAndRemove',
       async () => {
         return await this.mainDB.searchAndRemove(key, onComplete);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "searchAndRemove": KEY: "${key}".`);
   }
 
   public async searchAndRemoveMany(
@@ -258,12 +348,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'searchAndRemoveMany',
       async () => {
         return await this.mainDB.searchAndRemoveMany(keys, onComplete);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "searchAndRemoveMany": KEYS: `, keys);
   }
 
   public async searchAndRemoveInstantly(
@@ -271,12 +365,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'searchAndRemoveInstantly',
       async () => {
         return await this.mainDB.searchAndRemoveInstantly(key);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "searchAndRemoveInstantly": KEY: "${key}".`);
   }
 
   public async searchAndRemoveInstantlyMany(
@@ -284,11 +382,18 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'searchAndRemoveInstantlyMany',
       async () => {
         return await this.mainDB.searchAndRemoveInstantlyMany(keys);
       },
       [],
       onComplete
+    );
+
+    // debug
+    this.logger.debug(
+      `Queued task "searchAndRemoveInstantlyMany": KEYS: `,
+      keys
     );
   }
 
@@ -297,12 +402,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'searchIndex',
       async () => {
         return await this.mainDB.searchIndex(key);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "searchIndex": KEY: "${key}".`);
   }
 
   public async rename(
@@ -311,11 +420,17 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'rename',
       async () => {
         return await this.mainDB.rename(oldKey, newKey);
       },
       [],
       onComplete
+    );
+
+    // debug
+    this.logger.debug(
+      `Queued task "rename": OLDKEY: "${oldKey}", NEWKEY: "${newKey}".`
     );
   }
 
@@ -325,11 +440,17 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'modify',
       async () => {
         return await this.mainDB.modify(key, value);
       },
       [],
       onComplete
+    );
+
+    // debug
+    this.logger.debug(
+      `Queued task "modify": KEY: "${key}", VALUE: "${value}".`
     );
   }
 
@@ -338,12 +459,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'modifyMany',
       async () => {
         return await this.mainDB.modifyMany(items);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "modifyMany": ITEMS: `, items);
   }
 
   public async remove(
@@ -351,6 +476,9 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.mainDB.remove(key, onComplete);
+
+    // debug
+    this.logger.debug(`Called mainDB.remove(): KEY: "${key}".`);
   }
 
   public async removeMany(
@@ -358,6 +486,9 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     this.mainDB.removeMany(keys, onComplete);
+
+    // debug
+    this.logger.debug(`Called mainDB.removeMany(): KEYS: `, keys);
   }
 
   public async removeInstantly(
@@ -365,12 +496,16 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'removeInstantly',
       async () => {
         return await this.mainDB.removeInstantly(key);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "removeInstantly": KEY: "${key}".`);
   }
 
   public async removeInstantlyMany(
@@ -378,15 +513,22 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     onComplete: BasketDB.Types.Basket.TaskCompleteFunc
   ) {
     await this.queueTask(
+      'removeInstantlyMany',
       async () => {
         return await this.mainDB.removeInstantlyMany(keys);
       },
       [],
       onComplete
     );
+
+    // debug
+    this.logger.debug(`Queued task "removeInstantlyMany": KEYS: `, keys);
   }
 
   public async close() {
     await this.trashman.close();
+
+    // debug
+    this.logger.debug(`Closed Basket.trashman.`);
   }
 }

@@ -14,7 +14,7 @@
 - [x] Add config to Basket
   - [x] Add Trashman time config
   - [x] Add dumpPath config
-  - [ ] Add debug config
+  - [x] Add debug config
 - [x] Add remove
 - [x] Add removeMany
 - [x] Add searchMany method
@@ -29,8 +29,11 @@
 - [x] Add backup and restore methods
 - [x] Add replication of DB to all Bags for safe-case
   - [x] Add on error dump one bag to backup
-- [ ] Add Logger for debugging
+- [x] Add Logger for debugging
+  - [ ] Add dumping of trace to a filepath for Basket.dump
 - [ ] Add stats system
+- [ ] Improve Dump System
+  - [ ] Add oldDB copy before issue occurred in an internal Bag
 
 ## Bugs
 

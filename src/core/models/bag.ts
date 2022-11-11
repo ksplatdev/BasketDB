@@ -33,6 +33,12 @@ export default class Bag<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
       this.tasks.splice(index);
 
+      // debug
+      // check if task is a Trashman check task so that console will not be flooded
+      if (!task.isTrashmanTask) {
+        this.basket.logger.debug(`Bag-${this.id}: Ran task "${task.id}".`);
+      }
+
       continue;
     }
   }

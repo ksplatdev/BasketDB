@@ -34,18 +34,22 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
       const string = serialize(this.data);
       await writeFile(this.filepath, string);
     } catch (error) {
-      await this.basket.dump();
+      await this.basket.dump('FAILED WRITE');
       throw error;
     }
   }
 
-  public async read() {
+  public async read(ignoreDump?: boolean) {
     try {
       const buffer = await readFile(this.filepath);
       this.data = deserialize(buffer);
     } catch (error) {
-      await this.basket.dump();
-      throw error;
+      if (!ignoreDump) {
+        await this.basket.dump('FAILED READ');
+        throw error;
+      } else {
+        throw error;
+      }
     }
   }
 

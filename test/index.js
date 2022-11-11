@@ -9,6 +9,11 @@ const myBasket = new BasketDB.Basket(
   {
     trashmanCollectionIntervalInSeconds: 10,
     dumpPath: join(__dirname, './'),
+    debug: {
+      log: true,
+      warn: true,
+      error: true,
+    },
   }
 );
 
@@ -48,7 +53,7 @@ async function doStuff() {
     }
   );
 
-  // force error and dump
+  // // force error and dump
   // myBasket.mainDB.data = '[][asd';
   // await myBasket.write();
 
