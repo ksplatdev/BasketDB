@@ -45,7 +45,7 @@ Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.
 
 1. Download the [latest release](https://github.com/ksplatdev/BasketDB/releases/latest)
 2. Unzip the package into a directory in your project
-3. Import BasketDB using ES6 Import: `import BasketDB from 'path/to/BasketDB'` or use require: `const { default: BasketDB } = require('path/to/BasketDB')` 
+3. Import BasketDB using ES6 Import: `import BasketDB from 'path/to/BasketDB'` or use require: `const { default: BasketDB } = require('path/to/BasketDB')`
 4. Read [Getting Started](./pages/wiki/getting-started.md) or the [Docs](./pages/docs/home.md)
 
 ### CDN
