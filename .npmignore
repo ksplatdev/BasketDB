@@ -1,0 +1,12 @@
+.vscpde
+scripts
+src
+test
+pages
+.eslintrc.json
+.gitignore
+.npmignore
+.prettierignore
+.prettierrc
+TODO.md
+tsconfig.json
