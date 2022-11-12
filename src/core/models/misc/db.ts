@@ -34,8 +34,8 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
       const string = serialize(this.data);
       await writeFile(this.filepath, string);
     } catch (error) {
-      await this.basket.dump('FAILED WRITE');
-      throw error;
+      await this.basket.dump('FAILED DB WRITE');
+      throw 'FAILED DB WRITE';
     }
   }
 
@@ -45,10 +45,10 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
       this.data = deserialize(buffer);
     } catch (error) {
       if (!ignoreDump) {
-        await this.basket.dump('FAILED READ');
-        throw error;
+        await this.basket.dump('FAILED DB READ');
+        throw 'FAILED DB READ';
       } else {
-        throw error;
+        throw 'FAILED DB READ';
       }
     }
   }

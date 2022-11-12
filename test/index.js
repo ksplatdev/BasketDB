@@ -54,8 +54,11 @@ async function doStuff() {
   );
 
   // // force error and dump
-  // myBasket.mainDB.data = '[][asd';
-  // await myBasket.write();
+  // await myBasket.add(
+  //   'break',
+  //   'I forgot the onComplete func so this causes a dump'
+  //   // no onComplete func causes dump
+  // );
 
   await myBasket.search('hello', async (res) => {
     console.log('found by key "hello"', res);
@@ -69,6 +72,8 @@ async function doStuff() {
 
   console.log('Data: ', myBasket.data);
   console.log(`Operation time took: ${(end - start) / 1000}s`);
+
+  console.log(myBasket.mainDB.data, myBasket.internalBag.oldRepel.data);
 
   // await myBasket.close();
 }

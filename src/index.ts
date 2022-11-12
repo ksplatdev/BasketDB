@@ -62,7 +62,7 @@ namespace BasketDB {
     export namespace Misc {
       export interface LogTraceItem {
         type: 'debug' | 'warn' | 'error';
-        message: string;
+        message: unknown[];
       }
 
       export interface DebugConfig {

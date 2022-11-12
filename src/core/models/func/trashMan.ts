@@ -82,7 +82,7 @@ export default class Trashman<t extends BasketDB.Types.Core.DB.HiddenProps> {
       await this.basket.dump(
         'FAILED TRASHMAN MARK, POSSIBLE CAUSE: INVALID DATA'
       );
-      throw error;
+      throw 'FAILED TRASHMAN MARK, POSSIBLE CAUSE: INVALID DATA';
     }
   }
 
@@ -126,7 +126,7 @@ export default class Trashman<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
                     // debug
                     this.basket.logger.debug(
-                      `Trashman: Removed item marked for removal, "${key}", and removed from Trashman schedule`
+                      `Trashman: Removed item that was marked for removal, "${key}", and removed key from Trashman schedule`
                     );
 
                     return {
@@ -146,7 +146,7 @@ export default class Trashman<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
                     // debug
                     this.basket.logger.debug(
-                      `Trashman: Removed item marked for removal, "${key}", and removed from Trashman schedule`
+                      `Trashman: Removed item that was marked for removal, "${key}", and removed key from Trashman schedule`
                     );
 
                     return {
@@ -170,7 +170,7 @@ export default class Trashman<t extends BasketDB.Types.Core.DB.HiddenProps> {
       await this.basket.dump(
         'FAILED TRASHMAN CHECK, POSSIBLE CAUSE: INVALID DATA'
       );
-      throw error;
+      throw 'FAILED TRASHMAN CHECK, POSSIBLE CAUSE: INVALID DATA';
     }
   }
 }

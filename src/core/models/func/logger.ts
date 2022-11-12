@@ -37,11 +37,9 @@ export default class Logger<t extends BasketDB.Types.Core.DB.HiddenProps> {
       return;
     }
 
-    const str = (chalk.gray.bold(this.title, this.date), chalk.gray(...msg));
+    this.trace.push({ message: msg, type: 'debug' });
 
-    this.trace.push({ message: str, type: 'debug' });
-
-    console.log(str);
+    console.log(chalk.gray.bold(this.title, this.date), chalk.gray(...msg));
   }
 
   public warn(...msg: unknown[]) {
@@ -49,26 +47,24 @@ export default class Logger<t extends BasketDB.Types.Core.DB.HiddenProps> {
       return;
     }
 
-    const str =
-      (chalk.yellowBright.bold(this.title, this.date),
-      chalk.yellowBright(...msg));
+    this.trace.push({ message: msg, type: 'warn' });
 
-    this.trace.push({ message: str, type: 'warn' });
-
-    console.warn(str);
+    console.warn(
+      chalk.yellowBright.bold(this.title, this.date),
+      chalk.yellowBright(...msg)
+    );
   }
 
   public error(...msg: unknown[]) {
     if (!this.config.error) {
       return;
     }
+    this.trace.push({ message: msg, type: 'error' });
 
-    const str =
-      (chalk.redBright.bold(this.title, this.date), chalk.redBright(...msg));
-
-    this.trace.push({ message: str, type: 'error' });
-
-    console.log(str);
+    console.log(
+      chalk.redBright.bold(this.title, this.date),
+      chalk.redBright(...msg)
+    );
   }
 
   public async dump(filepath: string) {

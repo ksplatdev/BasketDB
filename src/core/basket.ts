@@ -8,6 +8,8 @@ import { deserialize, serialize } from 'v8';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import Logger from './models/func/logger';
+import InternalBag from './models/internalBag';
+import { exit } from 'process';
 
 export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly id: string;
@@ -17,6 +19,7 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   protected mainDB: DB<t>;
   public trashman: Trashman<t>;
 
+  public internalBag: InternalBag<t>;
   public bags: Bag<t>[];
   public taskTree: Record<string, BasketDB.Types.Basket.Task>;
 
@@ -32,9 +35,14 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     this.name = name;
     this.config = config || {};
 
-    this.mainDB = new DB(mainDB, type, this);
-    this.trashman = new Trashman(this, this.mainDB);
+    this.mainDB = new DB<t>(mainDB, type, this);
+    this.trashman = new Trashman<t>(this, this.mainDB);
 
+    this.internalBag = new InternalBag<t>(
+      this,
+      this.mainDB,
+      `basket-${name}-internal-bag`
+    );
     this.bags = [];
     this.taskTree = {};
 
@@ -49,7 +57,7 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public async splinter(amount?: number) {
     if (amount) {
       for (let i = 0; i < amount; i++) {
-        const bag = new Bag(this, this.mainDB);
+        const bag = new Bag<t>(this, this.mainDB);
         const num = this.bags.push(bag);
 
         // debug
@@ -59,7 +67,7 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
         await this.splinterTasks();
       }
     } else {
-      const bag = new Bag(this, this.mainDB);
+      const bag = new Bag<t>(this, this.mainDB);
       const num = this.bags.push(bag);
 
       // debug
@@ -96,7 +104,7 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
         // check if task is a Trashman check task so that console will not be flooded
         if (!task.isTrashmanTask) {
           this.logger.debug(
-            `Splintered/Added task "${task.id}" into Bag "${smallestBag.id}"`
+            `Splintered/Added task "${task.name}" "${task.id}" into Bag "${smallestBag.id}"`
           );
         }
 
@@ -115,6 +123,10 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     isTrashmanTask?: boolean
   ) {
     try {
+      // sync before read in case of an error for Dump
+      // call internalBag.update to sync oldRepel and current DB
+      await this.internalBag.sync(this.data);
+
       const id = uuid();
 
       this.taskTree[id] = {
@@ -132,7 +144,39 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
       await this.dump(
         `FAILED TO QUEUE TASK OF "${name}", POSSIBLE CAUSE: INVALID DATA`
       );
-      throw error;
+      throw `FAILED TO QUEUE TASK OF "${name}", POSSIBLE CAUSE: INVALID DATA`;
+    }
+  }
+
+  public async queueInternalTask(
+    name: string,
+    func: BasketDB.Types.Basket.TaskFunc,
+    args: unknown[],
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc,
+    isTrashmanTask?: boolean
+  ) {
+    try {
+      const id = uuid();
+
+      const task = {
+        id,
+        name,
+        func,
+        args,
+        onComplete,
+        isTrashmanTask: isTrashmanTask || false,
+      };
+
+      // push task to internal bag
+      this.internalBag.tasks.push(task);
+
+      // do tasks
+      await this.internalBag.doTasks();
+    } catch (error) {
+      await this.dump(
+        `FAILED TO QUEUE INTERNAL TASK OF "${name}", POSSIBLE CAUSE: INVALID DATA`
+      );
+      throw `FAILED TO QUEUE INTERNAL TASK OF "${name}", POSSIBLE CAUSE: INVALID DATA`;
     }
   }
 
@@ -174,12 +218,11 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
   public async dump(msg: string) {
     // dump repel DB
-    const bag = this.bags[0];
-    const string = serialize(bag.repel.data);
+    const string = serialize(this.internalBag.oldRepel.data);
 
     const filepath = join(
       this.config?.dumpPath || __dirname,
-      `./basket-${this.name}-bag-${bag.id}-dump.basket`
+      `./basket-${this.name}-internal-bag-dump.basket`
     );
 
     await writeFile(filepath, string);
@@ -193,6 +236,8 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     this.logger.error('*DUMP* *CHECK LOG TRACE*', ' | ', msg, ' | ', filepath);
 
     await this.logger.dump(logFilepath);
+
+    exit(1);
   }
 
   public async keyExistsMemory(
