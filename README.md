@@ -50,7 +50,7 @@ Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.
 
 ### CDN
 
-1. Copy the CDN Link [https://cdn.jsdelivr.net/npm/duckengine@2.1.0/dist/index.js](https://cdn.jsdelivr.net/npm/basketdb@1.0.0/dist/index.js)
+1. Copy the CDN Link [https://cdn.jsdelivr.net/npm/basketdb@1.0.0/dist/index.js](https://cdn.jsdelivr.net/npm/basketdb@1.0.0/dist/index.js)
 2. Import BasketDB using ES6 Import: `import BasketDB from 'cdn/link/here'` or use require: `const { default: BasketDB } = require('cdn/link/here')`
 3. Read [Getting Started](./pages/wiki/getting-started.md) or the [Docs](./pages/docs/home.md)
 
