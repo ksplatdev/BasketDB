@@ -17,13 +17,32 @@ const myBasket = new BasketDB.Basket(
   }
 );
 
+function makeID(length) {
+  let result = '';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
 async function doStuff() {
   console.log('Stuff started');
+
+  const dataToAdd = Array.from({ length: 1000 }, () => {
+    return {
+      key: makeID(10),
+      value: { message: makeID(15) },
+    };
+  });
 
   await myBasket.splinter(3); // small amount of bags, increase to scale
 
   await myBasket.fillEmpty();
 
+  // only measure BasketDB stuff
   const start = Date.now();
 
   // await myBasket.add(
@@ -41,6 +60,11 @@ async function doStuff() {
   //   },
   //   (res) => {}
   // );
+
+  // MASS ADD TEST 1000 AT ONCE
+  await myBasket.addMany(dataToAdd, (res) => {
+    console.log('Finished mass add');
+  });
 
   await myBasket.addMany(
     [
@@ -74,9 +98,9 @@ async function doStuff() {
   console.log(`Operation time took: ${(end - start) / 1000}s`);
 
   console.log(
-    `CPU: ${await myBasket.statReporter.cpuUsage()}`,
-    `MEM USED: ${await myBasket.statReporter.memoryUsed()}`,
-    `SIZE MB: ${await myBasket.statReporter.sizeOnDiskMegabytes()}`
+    `CPU: ${await myBasket.statReporter.cpuUsage()} | `,
+    `MEM USED: ${await myBasket.statReporter.memoryUsed()} |`,
+    `SIZE MB: ${await myBasket.statReporter.sizeOnDiskMegabytes()} |`
   );
 
   // await myBasket.close();
