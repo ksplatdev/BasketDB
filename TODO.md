@@ -35,11 +35,9 @@
   - [x] Add oldRepel for Dumping DB state before error
 - [ ] Overhaul System
   - [ ] Add core functionality
-    - [ ] Rename DB class to Category
-    - [ ] Add new Holder class which holds and manages Categories
     - [ ] Add category-key-value system
       - [ ] Add folder property to Basket
-      - [ ] Add categories array of new Category class to new Holder class
+      - [ ] Add categories array of type object with props name, date, and keys to DB
   - [ ] Add stats system
   - [ ] Add custom writer for writing changes only
   - [ ] Add use of setTimeout instead of date comparison for Trashman markings for accuracy
