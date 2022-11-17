@@ -33,14 +33,9 @@
   - [ ] Add dumping of trace to a filepath for Basket.dump
 - [x] Add internalBag to Basket
   - [x] Add oldRepel for Dumping DB state before error
-- [ ] Overhaul System
-  - [ ] Add core functionality
-    - [ ] Add category-key-value system
-      - [ ] Add folder property to Basket
-      - [ ] Add categories array of type object with props name, date, and keys to DB
-  - [ ] Add stats system
-  - [ ] Add custom writer for writing changes only
-  - [ ] Add use of setTimeout instead of date comparison for Trashman markings for accuracy
+- [x] Add stats system
+- [ ] Add custom writer for writing changes only
+- [ ] Add use of setTimeout instead of date comparison for Trashman markings for accuracy
 
 ## Bugs
 

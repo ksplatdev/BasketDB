@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 
 import Bag from './models/bag';
-import DB from './models/misc/db';
+import DB from './models/main/db';
 import BasketDB from '..';
 import Trashman from './models/func/trashMan';
 import { deserialize, serialize } from 'v8';
@@ -10,10 +10,12 @@ import { join } from 'path';
 import Logger from './models/func/logger';
 import InternalBag from './models/internalBag';
 import { exit } from 'process';
+import StatReporter from './models/func/statReporter';
 
 export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly id: string;
   public readonly name: string;
+  public readonly filepath: string;
   public readonly config: BasketDB.Types.Basket.Config;
 
   protected mainDB: DB<t>;
@@ -24,18 +26,20 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public taskTree: Record<string, BasketDB.Types.Basket.Task>;
 
   public logger: Logger<t>;
+  public statReporter: StatReporter<t>;
 
   constructor(
     name: string,
-    mainDB: string,
+    filepath: string,
     type: BasketDB.Types.Core.DB.Type,
     config?: BasketDB.Types.Basket.Config
   ) {
     this.id = uuid();
     this.name = name;
+    this.filepath = filepath;
     this.config = config || {};
 
-    this.mainDB = new DB<t>(mainDB, type, this);
+    this.mainDB = new DB<t>(this.filepath, type, this);
     this.trashman = new Trashman<t>(this, this.mainDB);
 
     this.internalBag = new InternalBag<t>(
@@ -52,6 +56,7 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
     }
 
     this.logger = new Logger(this, config?.debug);
+    this.statReporter = new StatReporter(this, this.mainDB);
   }
 
   public async splinter(amount?: number) {

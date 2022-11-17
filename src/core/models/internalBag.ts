@@ -1,7 +1,7 @@
 import BasketDB from '../..';
 import Basket from '../basket';
 import Bag from './bag';
-import DB from './misc/db';
+import DB from './main/db';
 
 export default class InternalBag<
   t extends BasketDB.Types.Core.DB.HiddenProps

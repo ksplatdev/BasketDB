@@ -73,7 +73,11 @@ async function doStuff() {
   console.log('Data: ', myBasket.data);
   console.log(`Operation time took: ${(end - start) / 1000}s`);
 
-  console.log(myBasket.mainDB.data, myBasket.internalBag.oldRepel.data);
+  console.log(
+    `CPU: ${await myBasket.statReporter.cpuUsage()}`,
+    `MEM USED: ${await myBasket.statReporter.memoryUsed()}`,
+    `SIZE MB: ${await myBasket.statReporter.sizeOnDiskMegabytes()}`
+  );
 
   // await myBasket.close();
 }

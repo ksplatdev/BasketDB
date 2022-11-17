@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import BasketDB from '../..';
 
 import Basket from '../basket';
-import DB from './misc/db';
+import DB from './main/db';
 
 export default class Bag<t extends BasketDB.Types.Core.DB.HiddenProps> {
   public readonly id: string;

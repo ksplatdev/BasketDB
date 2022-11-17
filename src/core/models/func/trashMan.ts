@@ -1,6 +1,6 @@
 import BasketDB from '../../..';
 import Basket from '../../basket';
-import DB from '../misc/db';
+import DB from '../main/db';
 
 export default class Trashman<t extends BasketDB.Types.Core.DB.HiddenProps> {
   protected basket: Basket<t>;
