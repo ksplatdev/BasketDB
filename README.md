@@ -24,6 +24,8 @@ Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.
 - Easy to Debug Errors
   - Includes a strong Logger for saving and showing debug, warn, and error messages
   - Logger also includes a trace to see everything that happened before a Dump or anything
+- Easy Statistics
+  - Get CPU, Memory, Disk, and other statistics that BasketDB is using
 - Flexible & Schemas
   - With the use of typescript, a database will always have a structure
 - Small
