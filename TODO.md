@@ -36,10 +36,8 @@
 - [x] Add stats system
 - [ ] Add custom writer for writing changes only
 - [ ] Add use of setTimeout instead of date comparison for Trashman markings for accuracy
-- [ ] Add multiprocessing
-  - [ ] Add option to config
-  - [ ] Make creating a Bag a new process
-  - [ ] Communicate with Bag for tasks
+- [ ] Add CLI
+  - [ ] Add all methods available to CLI
 
 ## Bugs
 
