@@ -4,7 +4,7 @@ import { serialize, deserialize } from 'v8';
 import BasketDB from '../../..';
 import Basket from '../../basket';
 
-export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
+export default class DB<t> {
   public readonly filepath: string;
   public readonly type: BasketDB.Types.Core.DB.Type;
 
@@ -70,7 +70,8 @@ export default class DB<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
       return markedForRemoval || null;
     } else {
-      const markedForRemoval = this.data[key]?.___markedForRemoval;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const markedForRemoval = (this.data[key] as any)?.___markedForRemoval;
 
       return markedForRemoval || null;
     }

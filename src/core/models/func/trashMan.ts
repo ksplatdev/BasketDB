@@ -2,7 +2,7 @@ import BasketDB from '../../..';
 import Basket from '../../basket';
 import DB from '../main/db';
 
-export default class Trashman<t extends BasketDB.Types.Core.DB.HiddenProps> {
+export default class Trashman<t> {
   protected basket: Basket<t>;
   protected mainDB: DB<t>;
 
@@ -68,8 +68,8 @@ export default class Trashman<t extends BasketDB.Types.Core.DB.HiddenProps> {
       } else {
         await this.basket.search(key, async (res) => {
           if (res) {
-            (this.mainDB.data as Record<string, t>)[key].___markedForRemoval =
-              true;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (this.mainDB.data as any)[key].___markedForRemoval = true;
 
             await this.basket.write();
 

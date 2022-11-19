@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import BasketDB from '../../..';
 import Basket from '../../basket';
 
-export default class Logger<t extends BasketDB.Types.Core.DB.HiddenProps> {
+export default class Logger<t> {
   public readonly title: string;
   public basket: Basket<t>;
 

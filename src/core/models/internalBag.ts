@@ -3,9 +3,7 @@ import Basket from '../basket';
 import Bag from './bag';
 import DB from './main/db';
 
-export default class InternalBag<
-  t extends BasketDB.Types.Core.DB.HiddenProps
-> extends Bag<t> {
+export default class InternalBag<t> extends Bag<t> {
   public oldRepel: DB<t>;
 
   constructor(basket: Basket<t>, db: DB<t>, id: string) {

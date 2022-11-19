@@ -5,14 +5,15 @@ import DB from './models/main/db';
 import BasketDB from '..';
 import Trashman from './models/func/trashMan';
 import { deserialize, serialize } from 'v8';
-import { readFile, writeFile } from 'fs/promises';
+import { access, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import Logger from './models/func/logger';
 import InternalBag from './models/internalBag';
 import { exit } from 'process';
 import StatReporter from './models/func/statReporter';
+import { F_OK } from 'constants';
 
-export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
+export default class Basket<t> {
   public readonly id: string;
   public readonly name: string;
   public readonly filepath: string;
@@ -57,6 +58,19 @@ export default class Basket<t extends BasketDB.Types.Core.DB.HiddenProps> {
 
     this.logger = new Logger(this, config?.debug);
     this.statReporter = new StatReporter(this, this.mainDB);
+  }
+
+  public async init() {
+    // check filepath exists
+    try {
+      await access(this.filepath, F_OK);
+
+      // exists
+      await this.fillEmpty();
+    } catch (error) {
+      // does not exist
+      await this.fillEmpty();
+    }
   }
 
   public async splinter(amount?: number) {

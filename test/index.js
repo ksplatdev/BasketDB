@@ -40,7 +40,7 @@ async function doStuff() {
 
   await myBasket.splinter(3); // small amount of bags, increase to scale, min bags is 3
 
-  await myBasket.fillEmpty();
+  await myBasket.init(); // check if file exists, if not create file
 
   // only measure BasketDB stuff
   const start = Date.now();

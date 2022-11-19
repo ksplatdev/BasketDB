@@ -2,14 +2,35 @@
   "name": "basketdb",
   "version": "1.0.0-beta",
   "description": "BasketDB - Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.",
-  "main": "dist/index.js",
+  "keywords": [
+    "database",
+    "nodejs",
+    "fast",
+    "scalable",
+    "small-package",
+    "extremely-small",
+    "open-source",
+    "performant",
+    "scalable-database",
+    "node-based-database",
+    "replication",
+    "safe",
+    "async",
+    "promise-based",
+    "callbacks"
+  ],
+  "main": "./dist/index.js",
   "repository": "https://github.com/ksplatdev/BagDB.git",
   "author": "Bleart Emini",
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
   },
+  "bin": {
+    "basket": "./dist/cli/index.js"
+  },
   "scripts": {
+    "cli": "node ./dist/cli/index.js",
     "test": "node test/index.js",
     "build": "bash scripts/build.sh",
     "format": "npx prettier --config .prettierrc --write \"src/**/*.ts\"",
@@ -18,6 +39,8 @@
     "lint:watch": "npx onchange \"src/**/*.ts\"  \"examples/**/*.ts\" -- eslint -c .eslintrc.json --fix {{changed}}"
   },
   "devDependencies": {
+    "@types/clear": "^0.1.2",
+    "@types/figlet": "^1.5.5",
     "@types/node": "^18.11.9",
     "@types/node-os-utils": "^1.3.0",
     "@types/random-name": "^0.1.0",
@@ -34,6 +57,9 @@
   },
   "dependencies": {
     "chalk": "4.1.2",
+    "clear": "^0.1.0",
+    "commander": "^9.4.1",
+    "figlet": "^1.5.2",
     "node-os-utils": "^1.3.7",
     "uuid": "^9.0.0"
   }

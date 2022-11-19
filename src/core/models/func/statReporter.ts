@@ -1,13 +1,10 @@
 import { stat } from 'fs/promises';
 import osu from 'node-os-utils';
 
-import BasketDB from '../../..';
 import Basket from '../../basket';
 import DB from '../main/db';
 
-export default class StatReporter<
-  t extends BasketDB.Types.Core.DB.HiddenProps
-> {
+export default class StatReporter<t> {
   protected basket: Basket<t>;
   protected db: DB<t>;
 

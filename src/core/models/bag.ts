@@ -4,7 +4,7 @@ import BasketDB from '../..';
 import Basket from '../basket';
 import DB from './main/db';
 
-export default class Bag<t extends BasketDB.Types.Core.DB.HiddenProps> {
+export default class Bag<t> {
   public readonly id: string;
 
   public basket: Basket<t>;

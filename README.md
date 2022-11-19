@@ -26,6 +26,9 @@ Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.
   - Logger also includes a trace to see everything that happened before a Dump or anything
 - Easy Statistics
   - Get CPU, Memory, Disk, and other statistics that BasketDB is using
+- Powerful CLI Tool
+  - Includes a powerful CLI Tool for running managing, viewing, modify Baskets (databases)
+  - Opens all Basket methods to the CLI
 - Flexible & Schemas
   - With the use of typescript, a database will always have a structure
 - Small
