@@ -34,6 +34,10 @@ Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.
   - Builtin typedefs
   - Less common for bugs
 
+## Support
+
+- Node Version >= 16.0.0
+
 ## Download
 
 ### NPM / YARN

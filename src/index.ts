@@ -9,6 +9,7 @@ namespace BasketDB {
         trashmanCollectionIntervalInSeconds?: number;
         dumpPath?: string;
         debug?: BasketDB.Types.Misc.DebugConfig;
+        // multiprocessing?: boolean;
       }
 
       export type TaskFunc = <t extends unknown[]>(

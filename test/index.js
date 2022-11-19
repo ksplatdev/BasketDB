@@ -94,13 +94,13 @@ async function doStuff() {
 
   const end = Date.now();
 
-  console.log('Data: ', myBasket.data);
   console.log(`Operation time took: ${(end - start) / 1000}s`);
 
   console.log(
-    `CPU: ${await myBasket.statReporter.cpuUsage()} | `,
-    `MEM USED: ${await myBasket.statReporter.memoryUsed()} |`,
-    `SIZE MB: ${await myBasket.statReporter.sizeOnDiskMegabytes()} |`
+    `CPU USAGE: ${await myBasket.statReporter.cpuUsage()}% | `,
+    `CPU COUNT: ${myBasket.statReporter.cpuCount} |`,
+    `MEM USED: ${await myBasket.statReporter.memoryUsed()} MB |`,
+    `SIZE: ${await myBasket.statReporter.sizeOnDiskMegabytes()} MB |`
   );
 
   // await myBasket.close();

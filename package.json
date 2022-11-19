@@ -6,6 +6,9 @@
   "repository": "https://github.com/ksplatdev/BagDB.git",
   "author": "Bleart Emini",
   "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "test": "node test/index.js",
     "build": "bash scripts/build.sh",

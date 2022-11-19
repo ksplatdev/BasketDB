@@ -75,6 +75,10 @@ export default class StatReporter<
     return await osu.cpu.usage();
   }
 
+  public get cpuCount() {
+    return osu.cpu.count();
+  }
+
   public async memoryFree() {
     return (await osu.mem.free()).freeMemMb;
   }
