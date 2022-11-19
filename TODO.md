@@ -38,6 +38,8 @@
 - [ ] Add use of setTimeout instead of date comparison for Trashman markings for accuracy
 - [ ] Add CLI
   - [ ] Add all methods available to CLI
+- [ ] Make core mass calls more efficient
+  - [ ] Make mass calls (ie: addMany) queue multiple tasks to separate into different bags to even work load
 
 ## Bugs
 

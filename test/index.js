@@ -38,7 +38,7 @@ async function doStuff() {
     };
   });
 
-  await myBasket.splinter(3); // small amount of bags, increase to scale
+  await myBasket.splinter(3); // small amount of bags, increase to scale, min bags is 3
 
   await myBasket.fillEmpty();
 
