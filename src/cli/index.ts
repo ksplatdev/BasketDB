@@ -40,11 +40,15 @@ function prompt(): void {
           console.log(`
           BasketDB CLI Help
     
-          |   Command    |    Arguments    |    Description 
+          |   Command    |              Arguments                |    Description 
     
-               exit              N/A        exits the CLI tool
-               clear             N/A        clears the CLI
-               help              N/A        lists all uses for the CLI tool
+              exit                         N/A                     exits the CLI tool
+              clear                        N/A                     clears the CLI
+              help                         N/A                     lists all uses for the CLI tool
+              init                    <projectName>                inits a BasketDB CLI Project
+              connect       <name> <filepath> <type> <config>      adds a Basket to manage to the CLI Project
+              use                         <name>                   sets the Basket to use and run all commands against
+              run              <basketCommand> <argsArray>         runs a command against the used Basket
           `);
 
           break;
