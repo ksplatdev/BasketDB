@@ -62,6 +62,18 @@ export default class DB<t> {
     }
   }
 
+  public async keyExists(key: string) {
+    // read
+    await this.read();
+
+    if (Array.isArray(this.data)) {
+      return this.data.find((t) => t.key === key) ? true : null;
+    } else {
+      const exists = key in this.data;
+      return exists || null;
+    }
+  }
+
   public async keyMarkedForRemoval(key: string) {
     if (Array.isArray(this.data)) {
       const markedForRemoval = this.data.find(
@@ -453,6 +465,29 @@ export default class DB<t> {
       return null;
     } else {
       return results;
+    }
+  }
+
+  public async each(cb: BasketDB.Types.Basket.MiscEachCB<t>) {
+    // read
+    await this.read();
+
+    if (Array.isArray(this.data)) {
+      for await (const v of this.data) {
+        await cb(v);
+      }
+    } else {
+      for (const key in this.data) {
+        if (Object.prototype.hasOwnProperty.call(this.data, key)) {
+          const item = this.data[key];
+          await cb({
+            key,
+            value: item,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ___markedForRemoval: (item as any).markedForRemoval || undefined,
+          });
+        }
+      }
     }
   }
 

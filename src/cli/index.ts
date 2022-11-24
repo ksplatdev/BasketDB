@@ -43,25 +43,25 @@ function makeArgs(command: string, line: string) {
 }
 
 async function prompt(): Promise<void> {
-  console.log('\n\n');
+  console.log('\n'); // new line
 
   if (!initialized) {
     initialized = true;
     await project.init();
   }
 
-  rl.on('SIGINT', () => process.emit('SIGINT'));
+  rl.on('SIGINT', () => {
+    process.emit('SIGINT');
+  });
 
-  rl.question(
-    chalk.white.italic.bold('Enter command: ') + chalk.gray('basket '),
-    async (line: string) => {
-      if (line.includes('exit')) {
-        exit(0);
-      } else if (line.includes('clear')) {
-        title();
-      } else if (line.includes('help')) {
-        console.log(`
-          BasketDB CLI Help
+  rl.question(chalk.white.italic.bold('BasketDB> '), async (line: string) => {
+    if (line.includes('exit')) {
+      exit(0);
+    } else if (line.includes('clear')) {
+      title();
+    } else if (line.includes('help')) {
+      console.log(`
+          BasketDB CLI Tool Help
     
           |   Command    |                       Arguments                       |    Description 
     
@@ -74,29 +74,28 @@ async function prompt(): Promise<void> {
               select                      <name>                                  selects a connected Basket to run all commands against
               run              <basketCommand> <argsArray>                        runs a command against the used Basket
           `);
-      } else if (line.includes('connect') && !line.includes('disconnect')) {
-        await project.connect(makeArgs('connect', line));
-      } else if (line.includes('disconnect')) {
-        await project.disconnect(makeArgs('disconnect', line));
-      } else if (line.includes('list')) {
-        await project.list();
-      } else if (line.includes('select')) {
-        //
-      } else if (line.includes('run')) {
-        //
-      } else if (line === '') {
-        console.log(
-          'Please enter a command or type "exit" to exit the CLI tool.'
-        );
-      } else {
-        console.log(
-          `"basket ${line}" is not a valid command, run "help" to see all available commands.`
-        );
-      }
-
-      return prompt();
+    } else if (line.includes('connect') && !line.includes('disconnect')) {
+      await project.connect(makeArgs('connect', line));
+    } else if (line.includes('disconnect')) {
+      await project.disconnect(makeArgs('disconnect', line));
+    } else if (line.includes('list')) {
+      await project.list();
+    } else if (line.includes('select')) {
+      await project.select(makeArgs('select', line));
+    } else if (line.includes('run')) {
+      //
+    } else if (line === '') {
+      console.log(
+        'Please enter a command or type "exit" to exit the CLI tool.'
+      );
+    } else {
+      console.log(
+        `"${line}" is not a valid command, run "help" to see all available commands.`
+      );
     }
-  );
+
+    return prompt();
+  });
 }
 
 prompt();

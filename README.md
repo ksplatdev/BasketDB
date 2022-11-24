@@ -40,6 +40,11 @@ Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.
 ## Support
 
 - Node Version >= 16.0.0
+- Multi-platform (Windows, Linux, MacOS)
+
+## Performance
+
+- Linux machines outperform Windows machines
 
 ## Download
 

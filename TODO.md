@@ -36,6 +36,9 @@
 - [x] Add stats system
 - [ ] Add custom writer for writing changes only
 - [ ] Add use of setTimeout instead of date comparison for Trashman markings for accuracy
+- [x] Add keyExists method
+  - [x] Make keyExistsMemory and new keyExists exposed to Basket without queuing a task
+- [x] Add each method to loop over each key value pair in DB
 - [ ] Add CLI
   - [ ] Add all methods available to CLI
 

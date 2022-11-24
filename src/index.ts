@@ -17,6 +17,10 @@ namespace BasketDB {
       ) => Promise<unknown | null>;
       export type TaskCompleteFunc<t> = (result: t | null) => Promise<unknown>;
 
+      export type MiscEachCB<t> = (
+        item: BasketDB.Types.Core.DB.ReturnType<t>
+      ) => Promise<unknown>;
+
       export interface Task<t> {
         id: string;
         name: string;

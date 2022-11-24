@@ -92,6 +92,12 @@ async function doStuff() {
     console.log('removed hello after 10 seconds', res);
   });
 
+  // await myBasket.each((item) => {
+  //   console.log('each: ', item);
+  // });
+
+  console.log(await myBasket.keyExists('bye'));
+
   const end = Date.now();
 
   console.log(`Operation time took: ${(end - start) / 1000}s`);

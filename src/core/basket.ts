@@ -260,21 +260,12 @@ export default class Basket<t> {
     exit(1);
   }
 
-  public async keyExistsMemory(
-    key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
-  ) {
-    await this.queueTask(
-      'keyExistsMemory',
-      async () => {
-        return await this.mainDB.keyExistsMemory(key);
-      },
-      [],
-      onComplete
-    );
+  public async keyExistsMemory(key: string) {
+    return this.mainDB.keyExistsMemory(key);
+  }
 
-    // debug
-    this.logger.debug(`Queued task "keyExistsMemory": KEY: "${key}".`);
+  public async keyExists(key: string) {
+    return await this.mainDB.keyExists(key);
   }
 
   public async fillEmpty() {
@@ -588,6 +579,10 @@ export default class Basket<t> {
 
     // debug
     this.logger.debug(`Queued task "removeInstantlyMany": KEYS: `, keys);
+  }
+
+  public async each(cb: BasketDB.Types.Basket.MiscEachCB<t>) {
+    return await this.mainDB.each(cb);
   }
 
   public async close() {

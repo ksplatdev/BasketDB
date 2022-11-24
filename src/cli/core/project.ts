@@ -15,6 +15,9 @@ interface ProjectSchema {
 export default class Project {
   public db: Basket<ProjectSchema>;
 
+  public basketArray: Basket<unknown>[];
+  public selectedBasket: Basket<unknown> | undefined;
+
   constructor() {
     this.db = new Basket(
       'basketdb-cli-project',
@@ -24,11 +27,48 @@ export default class Project {
         trashmanCollectionIntervalInSeconds: 10,
       }
     );
+
+    this.basketArray = [];
+    this.selectedBasket = undefined;
   }
 
   public async init() {
+    console.log(
+      chalk.gray.italic(
+        `LOG: basket project init: initializing/loading Basket CLI Project \n`
+      )
+    );
+
     await this.db.splinter(3);
     await this.db.init();
+
+    // populate basketArray
+    await this.db.read();
+    await this.db.each(async (item) => {
+      const basket = new Basket<unknown>(
+        item.key,
+        item.value.filepath,
+        item.value.type,
+        item.value.config
+      );
+
+      await basket.splinter(item.value.splinterNum);
+      await basket.init();
+
+      this.basketArray.push(basket);
+
+      console.log(
+        chalk.greenBright(
+          `SUCCESS: basket project init: loaded previously connected Basket "${item.key}" to BasketDB CLI Project \n`
+        )
+      );
+    });
+
+    console.log(
+      chalk.gray.italic(
+        `LOG: basket project init: finished initializing/loading Basket CLI Project \n`
+      )
+    );
   }
 
   public async connect(preArgs: string[]) {
@@ -62,6 +102,8 @@ export default class Project {
       await basket.init();
 
       await this.db.add(args.name, args, async () => {
+        this.basketArray.push(basket);
+
         console.log(
           chalk.greenBright(
             `SUCCESS: basket connect: connected and saved Basket "${args.name}" to BasketDB CLI Project`
@@ -103,6 +145,28 @@ export default class Project {
       });
 
       console.log(chalk.grey.italic(JSON.stringify(keys, null, 2)));
+    }
+  }
+
+  public async select(preArgs: string[]) {
+    const name = preArgs[0];
+
+    const f = this.basketArray.find((v) => v.name === name);
+
+    if (f) {
+      this.selectedBasket = f;
+
+      console.log(
+        chalk.greenBright(
+          `SUCCESS: basket select: selected connected Basket "${name}"`
+        )
+      );
+    } else {
+      console.error(
+        chalk.red(
+          `ERROR: basket select: failed to select basket "${name}" (make sure the Basket is connected with the right name)`
+        )
+      );
     }
   }
 }
