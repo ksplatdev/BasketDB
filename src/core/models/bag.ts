@@ -9,7 +9,7 @@ export default class Bag<t> {
 
   public basket: Basket<t>;
 
-  public tasks: BasketDB.Types.Basket.Task[];
+  public tasks: BasketDB.Types.Basket.Task<t>[];
 
   public repel: DB<t>;
 
@@ -32,7 +32,7 @@ export default class Bag<t> {
 
       // check if it is missed onComplete
       if (typeof task.onComplete === 'function') {
-        await task.onComplete(res);
+        await task.onComplete(res as t);
       } else {
         await this.basket.dump(
           `Bag-${this.id}: Cannot run task onComplete of task: "${task.name}" "${task.id}"`

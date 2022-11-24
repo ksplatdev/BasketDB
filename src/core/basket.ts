@@ -24,7 +24,7 @@ export default class Basket<t> {
 
   public internalBag: InternalBag<t>;
   public bags: Bag<t>[];
-  public taskTree: Record<string, BasketDB.Types.Basket.Task>;
+  public taskTree: Record<string, BasketDB.Types.Basket.Task<t>>;
 
   public logger: Logger<t>;
   public statReporter: StatReporter<t>;
@@ -134,11 +134,11 @@ export default class Basket<t> {
     }
   }
 
-  public async queueTask(
+  public async queueTask<t>(
     name: string,
     func: BasketDB.Types.Basket.TaskFunc,
     args: unknown[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>,
     isTrashmanTask?: boolean
   ) {
     try {
@@ -153,7 +153,8 @@ export default class Basket<t> {
         name,
         func,
         args,
-        onComplete,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onComplete: onComplete as any,
         isTrashmanTask: isTrashmanTask || false,
       };
 
@@ -171,7 +172,7 @@ export default class Basket<t> {
     name: string,
     func: BasketDB.Types.Basket.TaskFunc,
     args: unknown[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc,
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>,
     isTrashmanTask?: boolean
   ) {
     try {
@@ -261,7 +262,7 @@ export default class Basket<t> {
 
   public async keyExistsMemory(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'keyExistsMemory',
@@ -287,7 +288,7 @@ export default class Basket<t> {
   public async add(
     key: string,
     value: t,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'add',
@@ -304,7 +305,7 @@ export default class Basket<t> {
 
   public async addMany(
     items: BasketDB.Types.Core.DB.Combo<t>[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'addMany',
@@ -321,7 +322,7 @@ export default class Basket<t> {
 
   public async search(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'search',
@@ -338,7 +339,7 @@ export default class Basket<t> {
 
   public async searchMany(
     keys: string[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'searchMany',
@@ -356,7 +357,7 @@ export default class Basket<t> {
   public async searchAndModify(
     key: string,
     value: t,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'searchAndModify',
@@ -375,7 +376,7 @@ export default class Basket<t> {
 
   public async searchAndModifyMany(
     items: BasketDB.Types.Core.DB.Combo<t>[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'searchAndModifyMany',
@@ -392,7 +393,7 @@ export default class Basket<t> {
 
   public async searchAndRemove(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'searchAndRemove',
@@ -409,7 +410,7 @@ export default class Basket<t> {
 
   public async searchAndRemoveMany(
     keys: string[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'searchAndRemoveMany',
@@ -426,7 +427,7 @@ export default class Basket<t> {
 
   public async searchAndRemoveInstantly(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'searchAndRemoveInstantly',
@@ -443,7 +444,7 @@ export default class Basket<t> {
 
   public async searchAndRemoveInstantlyMany(
     keys: string[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'searchAndRemoveInstantlyMany',
@@ -463,7 +464,7 @@ export default class Basket<t> {
 
   public async searchIndex(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'searchIndex',
@@ -481,7 +482,7 @@ export default class Basket<t> {
   public async rename(
     oldKey: string,
     newKey: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'rename',
@@ -501,7 +502,7 @@ export default class Basket<t> {
   public async modify(
     key: string,
     value: t,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'modify',
@@ -520,7 +521,7 @@ export default class Basket<t> {
 
   public async modifyMany(
     items: BasketDB.Types.Core.DB.Combo<t>[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'modifyMany',
@@ -537,7 +538,7 @@ export default class Basket<t> {
 
   public async remove(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.mainDB.remove(key, onComplete);
 
@@ -547,7 +548,7 @@ export default class Basket<t> {
 
   public async removeMany(
     keys: string[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     this.mainDB.removeMany(keys, onComplete);
 
@@ -557,7 +558,7 @@ export default class Basket<t> {
 
   public async removeInstantly(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'removeInstantly',
@@ -574,7 +575,7 @@ export default class Basket<t> {
 
   public async removeInstantlyMany(
     keys: string[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     await this.queueTask(
       'removeInstantlyMany',

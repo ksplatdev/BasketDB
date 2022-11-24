@@ -6,7 +6,7 @@ export default class Trashman<t> {
   protected basket: Basket<t>;
   protected mainDB: DB<t>;
 
-  public schedule: BasketDB.Types.Core.Trashman.Schedule;
+  public schedule: BasketDB.Types.Core.Trashman.Schedule<t>;
 
   protected checkInterval: unknown;
 
@@ -38,7 +38,7 @@ export default class Trashman<t> {
 
   public async mark(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ) {
     try {
       const date = new Date();

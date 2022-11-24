@@ -194,7 +194,7 @@ export default class DB<t> {
 
   public async searchAndRemove(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
     const item = await this.search(key);
 
@@ -209,7 +209,7 @@ export default class DB<t> {
 
   public async searchAndRemoveMany(
     keys: string[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
     const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
 
@@ -365,7 +365,7 @@ export default class DB<t> {
 
   public async remove(
     key: string,
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ): Promise<BasketDB.Types.Core.DB.ReturnType<t> | null> {
     const item = await this.search(key);
 
@@ -382,7 +382,7 @@ export default class DB<t> {
 
   public async removeMany(
     keys: string[],
-    onComplete: BasketDB.Types.Basket.TaskCompleteFunc
+    onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>
   ): Promise<BasketDB.Types.Core.DB.ReturnType<t>[] | null> {
     const results: BasketDB.Types.Core.DB.ReturnType<t>[] = [];
 

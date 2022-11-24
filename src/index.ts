@@ -12,16 +12,16 @@ namespace BasketDB {
         // multiprocessing?: boolean;
       }
 
-      export type TaskFunc = <t extends unknown[]>(
-        args: t
+      export type TaskFunc = <r extends unknown[]>(
+        args: r
       ) => Promise<unknown | null>;
-      export type TaskCompleteFunc = (result: unknown) => Promise<unknown>;
+      export type TaskCompleteFunc<t> = (result: t | null) => Promise<unknown>;
 
-      export interface Task {
+      export interface Task<t> {
         id: string;
         name: string;
         func: TaskFunc;
-        onComplete: TaskCompleteFunc;
+        onComplete: TaskCompleteFunc<t>;
         args: unknown[];
         isTrashmanTask: boolean;
       }
@@ -49,12 +49,12 @@ namespace BasketDB {
       }
 
       export namespace Trashman {
-        export type Schedule = Record<
+        export type Schedule<t> = Record<
           string,
           {
             key: string;
             date: Date;
-            onComplete: BasketDB.Types.Basket.TaskCompleteFunc;
+            onComplete: BasketDB.Types.Basket.TaskCompleteFunc<t>;
           }
         >;
       }
