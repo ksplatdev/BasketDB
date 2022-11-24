@@ -1,3 +1,5 @@
+#!/usr/bin/node
+
 import chalk from 'chalk';
 import clear from 'clear';
 import { exit } from 'process';
@@ -32,6 +34,9 @@ process.on('SIGINT', () => {
   console.log(chalk.italic('SIGINT received, exiting...'));
   exit(0);
 });
+rl.on('SIGINT', () => {
+  process.emit('SIGINT');
+});
 
 function makeArgs(command: string, line: string) {
   line.replace(command, '');
@@ -49,10 +54,6 @@ async function prompt(): Promise<void> {
     initialized = true;
     await project.init();
   }
-
-  rl.on('SIGINT', () => {
-    process.emit('SIGINT');
-  });
 
   rl.question(chalk.white.italic.bold('BasketDB> '), async (line: string) => {
     if (line.includes('exit')) {
@@ -72,7 +73,9 @@ async function prompt(): Promise<void> {
               disconnect                  <name>                                  removes a Basket from the CLI Project
               list                         N/A                                    lists all connected Baskets
               select                      <name>                                  selects a connected Basket to run all commands against
-              run              <basketCommand> <argsArray>                        runs a command against the used Basket
+              unselect                                                            unselects the current selected Basket
+              selected                                                            returns the current selected Basket
+              get                  <basketPropertyKey>                            gets a passed property by key from the selected Basket 
           `);
     } else if (line.includes('connect') && !line.includes('disconnect')) {
       await project.connect(makeArgs('connect', line));
@@ -80,10 +83,22 @@ async function prompt(): Promise<void> {
       await project.disconnect(makeArgs('disconnect', line));
     } else if (line.includes('list')) {
       await project.list();
-    } else if (line.includes('select')) {
+    } else if (
+      line.includes('select') &&
+      !line.includes('unselect') &&
+      !line.includes('selected')
+    ) {
       await project.select(makeArgs('select', line));
-    } else if (line.includes('run')) {
-      //
+    } else if (line.includes('unselect')) {
+      await project.unselect();
+    } else if (line.includes('selected')) {
+      console.log(
+        chalk.grey.italic(
+          project.selectedBasket?.name || 'no basket selected...'
+        )
+      );
+    } else if (line.includes('get')) {
+      await project.get(makeArgs('get', line));
     } else if (line === '') {
       console.log(
         'Please enter a command or type "exit" to exit the CLI tool.'

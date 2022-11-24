@@ -17,7 +17,8 @@
     "safe",
     "async",
     "promise-based",
-    "callbacks"
+    "callbacks",
+    "included-cli-tool"
   ],
   "main": "./dist/index.js",
   "repository": "https://github.com/ksplatdev/BagDB.git",
@@ -30,6 +31,7 @@
     "basket": "./dist/cli/index.js"
   },
   "scripts": {
+    "install": "npm install -g .",
     "cli": "node ./dist/cli/index.js",
     "test": "node test/index.js",
     "build": "bash scripts/build.sh",

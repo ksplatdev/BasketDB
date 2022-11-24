@@ -145,6 +145,10 @@ export default class Project {
       });
 
       console.log(chalk.grey.italic(JSON.stringify(keys, null, 2)));
+    } else {
+      const keys = Object.keys(this.db.data);
+
+      console.log(chalk.grey.italic(JSON.stringify(keys, null, 2)));
     }
   }
 
@@ -165,6 +169,44 @@ export default class Project {
       console.error(
         chalk.red(
           `ERROR: basket select: failed to select basket "${name}" (make sure the Basket is connected with the right name)`
+        )
+      );
+    }
+  }
+
+  public async unselect() {
+    this.selectedBasket = undefined;
+  }
+
+  public async get(preArgs: string[]) {
+    const property: keyof Basket<unknown> = preArgs[0] as keyof Basket<unknown>;
+
+    if (this.selectedBasket) {
+      if (typeof this.selectedBasket[property] !== 'function') {
+        const value = this.selectedBasket[property];
+
+        console.log(
+          chalk.greenBright(
+            `SUCCESS: basket get: got property "${property}" from selected Basket`
+          )
+        );
+
+        try {
+          console.log(chalk.grey.italic(JSON.stringify(value, null, 2)));
+        } catch (error) {
+          console.log(chalk.grey.italic(value));
+        }
+      } else {
+        console.error(
+          chalk.red(
+            `ERROR: basket get: failed to get property "${property}" from selected basket "${this.selectedBasket.name}" (make sure the passed property is a property and not a method)`
+          )
+        );
+      }
+    } else {
+      console.error(
+        chalk.red(
+          `ERROR: basket get: failed to get property from the selected basket, no basket is selected (first select a basket with the "select <name>" command)`
         )
       );
     }
