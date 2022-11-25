@@ -28,10 +28,9 @@
     "node": ">=16.0.0"
   },
   "bin": {
-    "basket": "./dist/cli/index.js"
+    "basketdb": "./dist/cli/index.js"
   },
   "scripts": {
-    "install": "npm install -g .",
     "cli": "node ./dist/cli/index.js",
     "test": "node test/index.js",
     "build": "bash scripts/build.sh",

@@ -40,6 +40,7 @@
   - [x] Make keyExistsMemory and new keyExists exposed to Basket without queuing a task
 - [x] Add each method to loop over each key value pair in DB
 - [x] Add CLI
+  - [ ] Make CLI "fool proof" by checking for all arguments etc
 
 ## Bugs
 

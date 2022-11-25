@@ -68,6 +68,14 @@ Fast, Scalable, Extremely-Small, Open-Source, NodeJS Database for all use-cases.
 2. Import BasketDB using ES6 Import: `import BasketDB from 'cdn/link/here'` or use require: `const { default: BasketDB } = require('cdn/link/here')`
 3. Read [Getting Started](./pages/wiki/getting-started.md) or the [Docs](./pages/docs/home.md)
 
+### Download CLI Tool
+
+1. CD into your project that you would like to initialize a BasketDB CLI Project.
+2. Run `npm install -g basketdb` or if using yarn, run `yarn add -g basketdb`
+   1. Note: root permission may be required if on a linux platform
+3. Now that basketdb is install globally along with the CLI tool, run `basketdb` to create a new BasketDB CLI Project
+4. While in the BasketDB CLI Tool, run `help` for the list of commands
+
 ## License
 
 [MIT LICENSE](LICENSE)
