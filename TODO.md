@@ -44,8 +44,6 @@
 - [x] Add bags: number arg to Basket.init
 - [x] Rename Basket.splinter to Basket.addBags
 - [x] Rename Basket.splinterTasks to Basket.splitTasks
-- [ ] Make all Basket DB Methods return a Promise which resolve with the result
-  - [ ] Make callback optional
 
 ## Bugs
 
