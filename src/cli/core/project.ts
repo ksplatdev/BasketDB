@@ -39,7 +39,7 @@ export default class Project {
       )
     );
 
-    await this.db.splinter(3);
+    await this.db.addBags(3);
     await this.db.init();
 
     // populate basketArray
@@ -52,7 +52,7 @@ export default class Project {
         item.value.config
       );
 
-      await basket.splinter(item.value.splinterNum);
+      await basket.addBags(item.value.splinterNum);
       await basket.init();
 
       this.basketArray.push(basket);
@@ -98,7 +98,7 @@ export default class Project {
         args.config
       );
 
-      await basket.splinter(args.splinterNum);
+      await basket.addBags(args.splinterNum);
       await basket.init();
 
       await this.db.add(args.name, args, async () => {

@@ -13,6 +13,8 @@ export default class Bag<t> {
 
   public repel: DB<t>;
 
+  public closed: boolean;
+
   constructor(basket: Basket<t>, db: DB<t>, id?: string) {
     this.id = id || uuid();
 
@@ -21,6 +23,8 @@ export default class Bag<t> {
     this.tasks = [];
 
     this.repel = db;
+
+    this.closed = false;
   }
 
   public async doTasks() {
@@ -51,5 +55,12 @@ export default class Bag<t> {
 
       continue;
     }
+  }
+
+  public async close() {
+    this.closed = true;
+
+    // finish up any tasks left
+    await this.doTasks();
   }
 }

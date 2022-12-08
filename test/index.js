@@ -38,9 +38,7 @@ async function doStuff() {
     };
   });
 
-  await myBasket.splinter(3); // small amount of bags, increase to scale, min bags is 3
-
-  await myBasket.init(); // check if file exists, if not create file
+  await myBasket.init(3); // check if file exists, if not create file, create three bags
 
   // only measure BasketDB stuff
   const start = Date.now();
@@ -108,8 +106,6 @@ async function doStuff() {
     `MEM USED: ${await myBasket.statReporter.memoryUsed()} MB |`,
     `SIZE: ${await myBasket.statReporter.sizeOnDiskMegabytes()} MB |`
   );
-
-  // await myBasket.close();
 }
 
 doStuff();

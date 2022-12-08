@@ -60,7 +60,11 @@ export default class Basket<t> {
     this.statReporter = new StatReporter(this, this.mainDB);
   }
 
-  public async init() {
+  public async init(bags?: number) {
+    if (bags) {
+      this.addBags(bags);
+    }
+
     // check filepath exists
     try {
       await access(this.filepath, F_OK);
@@ -73,19 +77,8 @@ export default class Basket<t> {
     }
   }
 
-  public async splinter(amount?: number) {
-    if (amount) {
-      for (let i = 0; i < amount; i++) {
-        const bag = new Bag<t>(this, this.mainDB);
-        const num = this.bags.push(bag);
-
-        // debug
-        this.logger.debug(`Splintered/Created Bag #${num}`);
-
-        // splinter tasks in case some waiting
-        await this.splinterTasks();
-      }
-    } else {
+  public async addBags(amount: number) {
+    for (let i = 0; i < amount; i++) {
       const bag = new Bag<t>(this, this.mainDB);
       const num = this.bags.push(bag);
 
@@ -93,13 +86,35 @@ export default class Basket<t> {
       this.logger.debug(`Splintered/Created Bag #${num}`);
 
       // splinter tasks in case some waiting
-      await this.splinterTasks();
+      await this.splitTasks();
     }
-    return;
   }
 
-  protected async splinterTasks() {
-    const bagLengths = this.bags.map((b) => {
+  public async removeBags(amount: number) {
+    for (let i = 0; i < amount; i++) {
+      // check if is in array
+      const bag = this.bags[i];
+      if (!bag) {
+        return this.logger.error(
+          'Cannot remove bag, make sure the amount passed is less or equal to the amount of bags'
+        );
+      }
+
+      // bag exists
+      await bag.close(); // set closed prop and finish rest of tasks
+
+      // remove bag from list
+      this.bags.splice(i, 1);
+
+      // success
+      this.logger.debug(`Closed and removed Bag "${bag.id}"`);
+    }
+  }
+
+  protected async splitTasks() {
+    const openBags = this.bags.filter((b) => !b.closed); // filter out closed Bags
+
+    const bagLengths = openBags.map((b) => {
       return { id: b.id, length: b.tasks.length };
     });
 
@@ -108,9 +123,9 @@ export default class Basket<t> {
         return a.length - b.length;
       })[0].id;
 
-      const smallestBag = this.bags.find(
-        (b) => b.id === smallestBagID
-      ) as Bag<t>;
+      const smallestBag = this.bags.find((b) => {
+        return b.id === smallestBagID;
+      }) as Bag<t>;
 
       if (Object.prototype.hasOwnProperty.call(this.taskTree, key)) {
         const task = this.taskTree[key];
@@ -159,7 +174,7 @@ export default class Basket<t> {
       };
 
       // splinter new task(s)
-      await this.splinterTasks();
+      await this.splitTasks();
     } catch (error) {
       await this.dump(
         `FAILED TO QUEUE TASK OF "${name}", POSSIBLE CAUSE: INVALID DATA`

@@ -34,13 +34,18 @@
 - [x] Add internalBag to Basket
   - [x] Add oldRepel for Dumping DB state before error
 - [x] Add stats system
-- [ ] Add custom writer for writing changes only
-- [ ] Add use of setTimeout instead of date comparison for Trashman markings for accuracy
 - [x] Add keyExists method
   - [x] Make keyExistsMemory and new keyExists exposed to Basket without queuing a task
 - [x] Add each method to loop over each key value pair in DB
 - [x] Add CLI
   - [ ] Make CLI "fool proof" by checking for all arguments etc
+- [x] Add Bag.close to set Bag.closed prop to true
+- [x] Add Basket.removeBag to close and remove a Bag
+- [x] Add bags: number arg to Basket.init
+- [x] Rename Basket.splinter to Basket.addBags
+- [x] Rename Basket.splinterTasks to Basket.splitTasks
+- [ ] Make all Basket DB Methods return a Promise which resolve with the result
+  - [ ] Make callback optional
 
 ## Bugs
 

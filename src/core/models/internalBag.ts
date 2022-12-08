@@ -19,4 +19,10 @@ export default class InternalBag<t> extends Bag<t> {
   public async sync(data: BasketDB.Types.Core.DB.Schema<t>) {
     this.oldRepel.data = Object.assign({}, data);
   }
+
+  public async close() {
+    return this.basket.logger.warn(
+      'InternalBags cannot be closed, failed to close'
+    );
+  }
 }
